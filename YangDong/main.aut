@@ -1,0 +1,46 @@
+
+
+State 0 with rank 0 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:0, bit1:1>
+	With successors : 0, 1, 2, 3
+State 1 with rank 1 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:0, bit1:1>
+	With successors : 0, 1, 2, 3
+State 2 with rank 2 -> <GUIDED:1, DOSattack:0, mode_CIRCLE:0, bit0:0, bit1:1>
+	With successors : 4, 5, 6, 7
+State 3 with rank 3 -> <GUIDED:1, DOSattack:1, mode_CIRCLE:0, bit0:0, bit1:1>
+	With successors : 0, 1, 2, 3
+State 4 with rank 4 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:0, bit1:1>
+	With successors : 4, 5, 6, 7
+State 5 with rank 5 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:0, bit1:1>
+	With successors : 4, 5, 6, 7
+State 6 with rank 6 -> <GUIDED:1, DOSattack:0, mode_CIRCLE:0, bit0:0, bit1:0>
+	With successors : 8, 9, 10, 11
+State 7 with rank 7 -> <GUIDED:1, DOSattack:1, mode_CIRCLE:0, bit0:0, bit1:1>
+	With successors : 4, 5, 6, 7
+State 8 with rank 8 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:0, bit1:0>
+	With successors : 8, 9, 10, 11
+State 9 with rank 9 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:0, bit1:0>
+	With successors : 8, 9, 10, 11
+State 10 with rank 10 -> <GUIDED:1, DOSattack:0, mode_CIRCLE:0, bit0:1, bit1:0>
+	With successors : 15, 16, 6, 17
+State 11 with rank 11 -> <GUIDED:1, DOSattack:1, mode_CIRCLE:0, bit0:0, bit1:0>
+	With successors : 12, 13, 14, 3
+State 12 with rank 12 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:0, bit1:0>
+	With successors : 12, 13, 14, 3
+State 13 with rank 13 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:0, bit1:0>
+	With successors : 12, 13, 14, 3
+State 14 with rank 14 -> <GUIDED:1, DOSattack:0, mode_CIRCLE:0, bit0:0, bit1:0>
+	With successors : 8, 9, 10, 11
+State 15 with rank 15 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:1, bit1:0>
+	With successors : 15, 16, 6, 17
+State 16 with rank 16 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:1, bit1:0>
+	With successors : 15, 16, 6, 17
+State 17 with rank 17 -> <GUIDED:1, DOSattack:1, mode_CIRCLE:0, bit0:1, bit1:0>
+	With successors : 18, 19, 20, 3
+State 18 with rank 18 -> <GUIDED:0, DOSattack:0, mode_CIRCLE:1, bit0:1, bit1:0>
+	With successors : 18, 19, 20, 3
+State 19 with rank 19 -> <GUIDED:0, DOSattack:1, mode_CIRCLE:1, bit0:1, bit1:0>
+	With successors : 18, 19, 20, 3
+State 20 with rank 20 -> <GUIDED:1, DOSattack:0, mode_CIRCLE:0, bit0:1, bit1:0>
+	With successors : 15, 16, 6, 17
+
+
