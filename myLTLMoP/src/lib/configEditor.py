@@ -199,7 +199,7 @@ class regionTagsDialog(wx.Dialog):
         self.tags = tags
 
         # Populate tags and regions
-        self.list_box_tags.Set(self.tags.keys())
+        self.list_box_tags.Set(list(self.tags.keys()))
 
         if self.list_box_tags.GetCount() > 0:
             self.list_box_tags.SetSelection(0)
@@ -437,7 +437,7 @@ class handlerConfigDialog(wx.Dialog):
             button_calibrate = wx.Button(self.panel_configs, -1, "Run calibration tool...")
 
             self.panel_configs.GetSizer().Add(label, 0, wx.ALL, 5)
-            self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self._onCalibEdit, self.sheet)
+            self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self._onCalibEdit, self.sheet)
             self.panel_configs.GetSizer().Add(self.sheet, 0, wx.EXPAND | wx.ALL, 5)
             self.panel_configs.GetSizer().Add(button_calibrate, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
             self.Bind(wx.EVT_BUTTON, self._onClickCalibrate, button_calibrate)

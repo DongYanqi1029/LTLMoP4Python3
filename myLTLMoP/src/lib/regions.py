@@ -16,7 +16,7 @@
 # TODO: store regions with absolute coordinates, not x/y-pos + relative!!
 
 import os, sys, copy
-import fileMethods
+import lib.fileMethods as fileMethods
 import re, random, math
 import Polygon, Polygon.Utils, os
 import json
@@ -292,7 +292,7 @@ class RegionFileInterface(object):
                     transitionFaces[face].append(obj)
 
         toDelete = []
-        for face, objarray in transitionFaces.iteritems():
+        for face, objarray in transitionFaces.items():
             if len(objarray) > 1:
                 # If this face is shared by multiple regions
                 for obj in objarray:
@@ -370,7 +370,7 @@ class RegionFileInterface(object):
 
                 transitionData.append("\t".join([self.regions[region1].name,
                                                  self.regions[region1 + 1 + region2].name] +
-                                                 map(str, faceData)))
+                                                 list(map(str, faceData))))
 
         calibPoints = []
         for region in self.regions:
@@ -382,11 +382,13 @@ class RegionFileInterface(object):
 
         obstacleRegions = [r.name for r in self.regions if r.isObstacle]
 
-        data = {"Background": self.background,
+        data = {'': {"Background": self.background,
                 "Regions": regionData,
                 "Transitions": transitionData,
                 "CalibrationPoints": calibPoints,
-                "Obstacles": obstacleRegions}
+                "Obstacles": obstacleRegions}}
+        # print(data)
+        # print(filename)
 
         fileMethods.writeToFile(filename, data, comments)
         self.filename = filename
@@ -560,9 +562,10 @@ class Region(object):
         if self.type == reg_POLY:    
             # Shift our vertices to align with the new bounding box
             self.pointArray = map(lambda x: x-Point(topLeftX, topLeftY), self.pointArray)
+            self.pointArray = list(self.pointArray)
             # Shift holes vertices to align with the new bounding box
-            for i,hole in enumerate(self.holeList):
-                self.holeList[i] =  map(lambda x: x-Point(topLeftX, topLeftY),self.holeList[i])
+            for i, hole in enumerate(self.holeList):
+                self.holeList[i] = map(lambda x: x-Point(topLeftX, topLeftY), self.holeList[i])
                 
 
         # Store the new bounding box
@@ -588,6 +591,8 @@ class Region(object):
         last_cp = None
         for [i, pt] in enumerate(self.pointArray):
             # Be sure to account for looping around the edges of the vertex array
+            # print(i)
+            # print(pt)
             prev = self.pointArray[(i - 1) % len(self.pointArray)]
             next = self.pointArray[(i + 1) % len(self.pointArray)]
 
@@ -782,7 +787,7 @@ class Region(object):
 
         if self.type == reg_POLY:
             # Let's just average the points in the poly; that's easy
-            asum = functools.reduce(lambda a,b: a+b, self.pointArray)
+            asum = functools.reduce(lambda a, b: a+b, self.pointArray)
             cx = asum.x / len(self.pointArray) + self.position.x
             cy = asum.y / len(self.pointArray) + self.position.y
         else:

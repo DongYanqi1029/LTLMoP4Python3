@@ -1,36 +1,49 @@
-<?xml version ='1.0'?>
+    <model name='Cylinder_1_Model'>
+      <pose>0.016626 -0.018943 0 0 -0 0</pose>
+      <link name='Cylinder_1'>
+        <pose>0.047725 -1.35394 0 0 -0 0</pose>
+        <collision name='Cylinder_1_Collision'>
+          <pose>0 0 1.25 0 -0 0</pose>
+          <geometry>
+            <cylinder>
+              <size>0.25 2.5</size>
+            </cylinder>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='Cylinder_1_Visual'>
+          <pose>0 0 1.25 0 -0 0</pose>
+          <geometry>
+            <cylinder>
+              <size>0.25 2.5</size>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+          </material>
+          <meta>
+            <layer>0</layer>
+          </meta>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
 
-<model name="cylinder_14" static="1">
-    <link name='link' gravity='1' self_collide='0' kinematic='0'>
-      <origin pose="0.000000 0.000000 0.5 0 -0.000000 0.000000"/>
-      <inertial mass='1.000000' density='1.000000'>
-        <inertia ixx='1.000000' ixy='0.000000' ixz='0.000000' iyy='1.000000' iyz='0.000000' izz='1.000000'/>
-      </inertial>
-      <collision name='collision' laser_retro='0.000000'>
-        <geometry>
-       <cylinder radius="0.528049462913" length="3.0"/>
-        </geometry>
-        <origin pose='0.000000 0.000000 0.000000 0.000000 -0.000000 0.000000'/>
-        <surface>
-          <bounce restitution_coefficient='0.000000' threshold='100000.000000'/>
-          <friction>
-            <ode mu='-1.000000' mu2='-1.000000' fdir1='0.000000 0.000000 0.000000' slip1='0.000000' slip2='0.000000'/>
-          </friction>
-          <contact>
-            <ode soft_cfm='0.000000' soft_erp='0.200000' kp='1000000000000.000000' kd='1.000000' max_vel='100.000000' min_depth='0.001000'/>
-          </contact>
-        </surface>
-      </collision>
-      <visual name='visual' cast_shadows='1' laser_retro='0.000000' transparency='0.000000'>
-        <geometry>
-       <cylinder radius="0.528049462913" length="3.0"/>
-        </geometry>
-        <material script='Gazebo/Grey'/>
-      </visual>
-      <damping>
-        <linear>0.000000</linear>
-        <angular>0.000000</angular>
-      </damping>
-    </link>
-    <origin pose="6.73558649936 6.5990963012 0 0 0 0 " />
-  </model>

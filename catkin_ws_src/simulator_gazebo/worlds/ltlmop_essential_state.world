@@ -1,8 +1,15 @@
-<state world_name='default' time='17 182000000'>
-    <model name='plane1_model'>
-      <pose>0.000000 0.000000 0.000000 0.000000 -0.000000 0.000000</pose>
-      <link name='body'>
-        <pose>0.000000 0.000000 0.000000 0.000000 -0.000000 0.000000</pose>
-        <velocity>0.000000 0.000000 0.000000 0.000000 -0.000000 0.000000</velocity>
-      </link>
-    </model>
+    <state world_name='default'>
+      <sim_time>61 712000000</sim_time>
+      <real_time>62 52933217</real_time>
+      <wall_time>1651376256 4362639</wall_time>
+      <iterations>61712</iterations>
+      <model name='ground_plane'>
+        <pose>0 0 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>0 0 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>

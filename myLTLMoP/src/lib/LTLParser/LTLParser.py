@@ -626,19 +626,21 @@ class Parser(object):
         while state != self._halting_state:
             if read_next:
                 try:
-                    lookahead = input.next()
+                    # print(type(input))
+                    # lookahead = input.next()
+                    lookahead = next(input)
                 except StopIteration:
                     return (False,count,state,None)
                 read_next = False
             token = lookahead[0]
 
             if (state,token) in self._shift:
-                stack.append((state,lookahead))
-                state = self._shift[(state,token)]
+                stack.append((state, lookahead))
+                state = self._shift[(state, token)]
                 read_next = True
                 count += 1
             elif (state,token) in self._reduce:
-                X,n = self._reduce[(state,token)]
+                X, n = self._reduce[(state,token)]
                 if n > 0:
                     state = stack[-n][0]
                     tree = (X,) + tuple(s[1] for s in stack[-n:])

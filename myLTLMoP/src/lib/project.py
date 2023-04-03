@@ -169,7 +169,7 @@ class Project:
 
         if self.regionMapping is not None:
             data['SPECIFICATION']['RegionMapping'] = [rname + " = " + ', '.join(rlist) for
-                                                      rname, rlist in self.regionMapping.iteritems()]
+                                                      rname, rlist in self.regionMapping.items()]
 
         data['SETTINGS'] = {"Sensors": [p + ", " + str(int(p in self.enabled_sensors)) for p in self.all_sensors],
                             "Actions": [p + ", " + str(int(p in self.enabled_actuators)) for p in self.all_actuators],
@@ -178,7 +178,7 @@ class Project:
         if self.current_config != "":
             data['SETTINGS']['CurrentConfigName'] = self.current_config
 
-        data['SETTINGS']['CompileOptions'] = "\n".join(["%s: %s" % (k, str(v)) for k,v in self.compile_options.iteritems()])
+        data['SETTINGS']['CompileOptions'] = "\n".join(["%s: %s" % (k, str(v)) for k,v in self.compile_options.items()])
 
         if self.rfi is not None:
             # Save the path to the region file as relative to the spec file

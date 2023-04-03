@@ -52,7 +52,7 @@ class AsynchronousProcessThread(threading.Thread):
                 self.process = subprocess.Popen(self.cmd, bufsize=-1)
         # except err_types as (errno, strerror):
         except err_types as strerror:
-            print("ERROR: " + strerror)
+            print("ERROR: " + str(strerror))
             self.startComplete.set()
             return
 

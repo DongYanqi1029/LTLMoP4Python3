@@ -446,7 +446,7 @@ class RobotConfig(object):
         """
         Returns the handler config of the give name.
         """
-        for handler_type_class, handler_config in self.handlers.iteritems():
+        for handler_type_class, handler_config in self.handlers.items():
             if handler_config.name == name:
                 return handler_config
 
@@ -456,7 +456,9 @@ class RobotConfig(object):
     def getHandlerOfRobot(self, h_type):
         """Get the handler config object of this robot specified by h_type
         h_type is the handler class object specified in lib/handlers/handlerTemplates.py"""
-
+        # print(h_type)
+        # print(h_type in self.handlers.keys())
+        # print(self.handlers)
         if h_type in self.handlers.keys():
             return self.handlers[h_type]
         # if cannot find the specified handler, then return None
@@ -712,7 +714,7 @@ class ExperimentConfig(object):
         return reprString
         strRepr = []
         # Get all attribute names and values
-        for key, val in self.__dict__.iteritems():
+        for key, val in self.__dict__.items():
             # only show if the value is not none or empty
             if val: strRepr.append("{0}:{1}".format(key, val))
         # if all attributes have values of None or empty
@@ -866,7 +868,7 @@ class ExperimentConfig(object):
         # proposition mapping
         sensorMappingList = []
         actuatorMappingList = []
-        for prop, fun in self.prop_mapping.iteritems():
+        for prop, fun in self.prop_mapping.items():
             if 'sensor' in fun.lower():
                 sensorMapping = prop + ' = ' + fun
                 sensorMappingList.append(sensorMapping)

@@ -15,7 +15,7 @@ rosLocomotionCommand.py - ros Locomotion Command Handler
 import lib.handlers.handlerTemplates as handlerTemplates
 
 class RosLocomotionCommandHandler(handlerTemplates.LocomotionCommandHandler):
-	def __init__(self, executor, shared_data, velocityTopic='/base_controller/command'):
+	def __init__(self, executor, shared_data, velocityTopic='/cmd_vel'):
 		"""
 		The ROS Locomotion Command Handler
 
@@ -23,7 +23,7 @@ class RosLocomotionCommandHandler(handlerTemplates.LocomotionCommandHandler):
 		"""
 		try:
 			#open a publisher for the base controller of the robot
-			self.pub = rospy.Publisher(velocityTopic, Twist)
+			self.pub = rospy.Publisher(velocityTopic, Twist, queue_size=10)
 			# for the pr2, use /base_controller/command
 			# the turtlebot takes /cmd_vel
 		except:

@@ -61,6 +61,7 @@ class WxAsynchronousProcessThread(AsynchronousProcessThread):
 
         super(WxAsynchronousProcessThread, self).__init__(cmd, wxSafeCallback, wxSafeLogger)
 
+
 class AnalysisResultsDialog(wx.Dialog):
     def __init__(self, parent, *args, **kwds):
         # begin wxGlade: AnalysisResultsDialog.__init__
@@ -523,13 +524,13 @@ class SpecEditorFrame(wx.Frame):
             start -= 1
 
         # Set everything to the default style
-        self.text_ctrl_spec.StartStyling(start)  # 31 is the default mask
+        self.text_ctrl_spec.StartStyling(start, 31)  # 31 is the default mask
         self.text_ctrl_spec.SetStyling(end-start, wx.stc.STC_P_DEFAULT)
 
         # Find propositions
         text = self.text_ctrl_spec.GetTextRange(start,end)
         for m in re.finditer("|".join(map(lambda s: "\\b%s\\b"%s, self.proj.enabled_sensors + self.proj.enabled_actuators + self.proj.all_customs + self.list_box_regions.GetItems())), text, re.MULTILINE):
-            self.text_ctrl_spec.StartStyling(start+m.start())
+            self.text_ctrl_spec.StartStyling(start+m.start(), 31)
             self.text_ctrl_spec.SetStyling(m.end()-m.start(), wx.stc.STC_P_WORD)
 
         # Find groups
@@ -539,13 +540,13 @@ class SpecEditorFrame(wx.Frame):
         # Allow for singular references too
         group_names += [n[:-1] for n in group_names if n.endswith("s")]
         for m in re.finditer("|".join(map(lambda s: "\\b%s\\b"%s, group_names)), text, re.MULTILINE):
-            self.text_ctrl_spec.StartStyling(start+m.start())
+            self.text_ctrl_spec.StartStyling(start+m.start(), 31)
             self.text_ctrl_spec.SetStyling(m.end()-m.start(), wx.stc.STC_P_STRING)
 
         # Find comment lines
         text = self.text_ctrl_spec.GetTextRange(start,end)
         for m in re.finditer("^#.*?$", text, re.MULTILINE):
-            self.text_ctrl_spec.StartStyling(start+m.start())
+            self.text_ctrl_spec.StartStyling(start+m.start(), 31)
             self.text_ctrl_spec.SetStyling(m.end()-m.start(), wx.stc.STC_P_COMMENTLINE)
 
         # Perform a no-op style operation on the entire section of text to ensure that
@@ -554,7 +555,7 @@ class SpecEditorFrame(wx.Frame):
         # but if this is not here this event can get thrown over and over, causing flickering.
         # (It appears that only the end-point of the last set-styling call affects Scintilla's internal
         # style-needed pointer?)
-        self.text_ctrl_spec.StartStyling(start)
+        self.text_ctrl_spec.StartStyling(start, 0)
         self.text_ctrl_spec.SetStyling(end-start, 0)
 
     def __set_properties(self):
@@ -826,7 +827,7 @@ class SpecEditorFrame(wx.Frame):
                                   default_filename=os.path.basename(default),
                                   default_extension="spec",
                                   wildcard="Specification files (*.spec)|*.spec",
-                                  flags = wx.SAVE | wx.OVERWRITE_PROMPT)
+                                  flags = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if filename == "": return # User cancelled.
 
@@ -1050,7 +1051,7 @@ class SpecEditorFrame(wx.Frame):
 
         # Update workspace decomposition listbox
         if self.proj.regionMapping is not None:
-            self.list_box_locphrases.Set(self.proj.regionMapping.keys())
+            self.list_box_locphrases.Set(list(self.proj.regionMapping.keys()))
             self.list_box_locphrases.Select(0)
 
         self.appendLog("Creating LTL...\n", "BLUE")
@@ -1101,24 +1102,25 @@ class SpecEditorFrame(wx.Frame):
         self.badInit = ""
         def onLog(text):
             # Check for bad initial conditions list in unsynth case
+            text = str(text)
             if "For example" in text:
                 self.badInit = text.split('\t')[-1].strip()
 
             # Display output realtime in the log
-            wx.CallAfter(self.appendLog, "\t"+text)
+            wx.CallAfter(self.appendLog, "\t" + text)
 
         # Kick off the synthesis
         try:
             compiler._synthesizeAsync(onLog)
         except RuntimeError as e:
-            wx.MessageBox(e.message, "Error",
+            wx.MessageBox(str(e), "Error",
                         style = wx.OK | wx.ICON_ERROR)
             busy_dialog.Destroy()
             return
 
         while not compiler.synthesis_complete.isSet():
             # Keep the progress bar spinning and check if the Abort button has been pressed
-            keep_going = busy_dialog.UpdatePulse()[0]
+            keep_going = busy_dialog.Update(1)[0]
 
             if not keep_going:
                 compiler.abortSynthesis()

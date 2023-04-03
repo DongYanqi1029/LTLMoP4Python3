@@ -1,0 +1,12 @@
+
+
+State 0 with rank 0 -> <bit0:0, bit1:0>
+	With successors : 1
+State 1 with rank 0 -> <bit0:1, bit1:0>
+	With successors : 2
+State 2 with rank 1 -> <bit0:0, bit1:1>
+	With successors : 3
+State 3 with rank 2 -> <bit0:0, bit1:0>
+	With successors : 1
+
+

@@ -45,6 +45,7 @@ class ExecutorStrategyExtensions(object):
         Run, run, run the automaton!  (For one evaluation step)
         """
         # find current region
+        logging.info("=============== Strategy Iteration ===============")
         self.current_region = self.strategy.current_state.getPropValue('region')
 
         # Take a snapshot of our current SENSOR readings
@@ -52,7 +53,7 @@ class ExecutorStrategyExtensions(object):
 
         # Let's try to transition
         # TODO: set current state so that we don't need to call from_state
-        next_states = self.strategy.findTransitionableStates(sensor_state, from_state= self.strategy.current_state)
+        next_states = self.strategy.findTransitionableStates(sensor_state, from_state=self.strategy.current_state)
 
         # Make sure we have somewhere to go
         if len(next_states) == 0:
@@ -93,6 +94,8 @@ class ExecutorStrategyExtensions(object):
             # REGION Transition
             # Move one step towards the next region (or stay in the same region)
             self.arrived = self.hsub.gotoRegion(self.current_region, self.next_region)
+
+        # print(self.arrived)
 
         # Check for completion of motion
         if self.arrived and self.next_state != self.strategy.current_state:

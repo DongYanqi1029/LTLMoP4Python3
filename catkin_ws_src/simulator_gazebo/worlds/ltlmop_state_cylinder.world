@@ -1,7 +1,11 @@
-    <model name="cylinder_14">
-      <pose>6.73558649936 6.5990963012 0 0 0 0 </pose>
-      <link name='link'>
-      <pose>0 0 1.5 0 0 0 </pose>
-        <velocity>0.000000 0.000000 0.000000 0.000000 -0.000000 0.000000</velocity>
-      </link>
-    </model>
+      <model name='Cylinder_1_Model'>
+        <pose>0 0 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='Cylinder_1'>
+          <pose>0 0 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+

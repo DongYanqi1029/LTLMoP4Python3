@@ -1,0 +1,33 @@
+<launch>
+  <arg name="robot_in_world" default="true" />
+  <arg name="robot_package" default="simulator_gazebo" />
+  <arg name="robot_launch" default="turtlebot3_burger.launch" />
+
+  <arg name="x" default="1.113408889111027" />
+  <arg name="y" default="-1.4266352457684013" />
+  <arg name="z" default="0.01" />
+  <arg name="roll" default="0.0"/>
+  <arg name="pitch" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find simulator_gazebo)/worlds/ltlmop_map.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <group if="$(arg robot_in_world)">
+    <include file="$(eval find(robot_package) + '/launch/robot_launch/' + robot_launch)">
+      <arg name="x" value="$(arg x)" />
+      <arg name="y" value="$(arg y)" />
+      <arg name="z" value="$(arg z)" />
+      <arg name="roll" value="$(arg roll)"/>
+      <arg name="pitch" value="$(arg pitch)"/>
+      <arg name="yaw" value="$(arg yaw)" />
+    </include>
+  </group>
+
+</launch>

@@ -911,7 +911,7 @@ class SpecCompiler(object):
         # of the synthesis tool and return it in a meaningful way.
         def onLog(text):
             """ Intercept log callbacks to check for realizability status. """
-
+            text = str(text)
             if REALIZABLE_MESSAGE in text:
                 self.realizable = True
             if REALIZABLE_FS_MESSAGE is not None and REALIZABLE_FS_MESSAGE in text:

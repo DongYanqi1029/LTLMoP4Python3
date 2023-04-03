@@ -221,7 +221,7 @@ class parseLP:
         tempDic = {} # temporary variable for storing polygon
                      # will be merged at the end to self.portionOfRegion
 
-        for nameOfPortion,poly in self.portionOfRegion.iteritems():
+        for nameOfPortion,poly in self.portionOfRegion.items():
             result = [] # result list of polygon from decomposition
             if len(poly)>1:
                 # the polygon contains holes
@@ -251,7 +251,7 @@ class parseLP:
                     self.count = self.count + 1
                 
                 # update the mapping dictionary
-                for nameOfRegion,portionList in self.newPolysMap.iteritems():
+                for nameOfRegion,portionList in self.newPolysMap.items():
                     if nameOfPortion in portionList:
                         self.newPolysMap[nameOfRegion].remove(nameOfPortion)
                         self.newPolysMap[nameOfRegion].extend(newPortionName)
@@ -270,7 +270,7 @@ class parseLP:
             return
         
         polyList = []    
-        for nameOfPortion,poly in self.portionOfRegion.iteritems():
+        for nameOfPortion,poly in self.portionOfRegion.items():
             polyList.append(poly)
         Polygon.IO.writeSVG('/home/cornell/Desktop/ltlmop-google/allPortions.svg', polyList)
         
@@ -282,17 +282,17 @@ class parseLP:
         
         # find the area of largest regions
         area = 0
-        for nameOfPortion,poly in self.portionOfRegion.iteritems():
+        for nameOfPortion,poly in self.portionOfRegion.items():
             if area<poly.area():
                 area = poly.area()
                 
         # remove small regions
         smallRegion = []
         
-        for nameOfPortion,poly in self.portionOfRegion.iteritems():
+        for nameOfPortion,poly in self.portionOfRegion.items():
             if poly.area()<tolerance*area:
                 smallRegion.append(nameOfPortion)
-                for nameOfRegion, portionList in self.newPolysMap.iteritems():
+                for nameOfRegion, portionList in self.newPolysMap.items():
                     if nameOfPortion in portionList:
                         self.newPolysMap[nameOfRegion].remove(nameOfPortion)
                         
@@ -315,7 +315,7 @@ class parseLP:
         
         # the only different data is regions
         self.proj.rfi.regions = []
-        for nameOfPortion,poly in self.portionOfRegion.iteritems():
+        for nameOfPortion,poly in self.portionOfRegion.items():
             newRegion                   = Region()
             newRegion.name              = nameOfPortion
             newRegion.color             = Color()

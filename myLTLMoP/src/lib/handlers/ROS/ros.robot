@@ -5,22 +5,25 @@ Type: # Robot type
 ROS
 
 InitHandler: # Robot default init handler with default argument values
-ROS.RosInitHandler(worldFile="ltlmop_map.world", robotPixelWidth=200, robotPhysicalWidth=.5, robotPackage="pr2_gazebo", robotLaunchFile="pr2.launch", modelName = "pr2")
+ROS.RosInitHandler(worldFile='ltlmop_map.world', robotPixelWidth=40, robotPhysicalWidth=.5, robotPackage="simulator_gazebo", robotLaunchFile="turtlebot3_burger.launch", modelName = "turtlebot3_burger")
 
 PoseHandler: # Robot default pose handler with default argument values
-ROS.RosPoseHandler(modelName="pr2")
+ROS.RosPoseHandler(modelName="turtlebot3_burger")
 
 SensorHandler: # Robot default sensors handler with default argument values
-ROS.RosSensorHandler()
+# ROS.RosSensorHandler()
 
-ActuatorHandler: # Robot default actuator handler wit hdefault argument values
-ROS.RosActuatorHandler()
+ActuatorHandler: # Robot default actuator handler wit default argument values
+# ROS.RosActuatorHandler()
 
 MotionControlHandler: # Robot default motion control handler with default argument values
-share.MotionControl.HeatControllerHandler()
+# share.MotionControl.HeatControllerHandler()
+# share.MotionControl.VectorControllerHandler()
+# ROS.ROSMotionControlHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
+share.MotionControl.RRTControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
 
-DriveHandler: # Robot default drive handler with deafult argument values
+DriveHandler: # Robot default drive handler with default argument values
 ROS.RosDriveHandler(d=.6)
 
 LocomotionCommandHandler: # Robot default locomotion command handler with default argument values
-ROS.RosLocomotionCommandHandler(velocityTopic='/base_controller/command')
+ROS.RosLocomotionCommandHandler(velocityTopic='/cmd_vel')

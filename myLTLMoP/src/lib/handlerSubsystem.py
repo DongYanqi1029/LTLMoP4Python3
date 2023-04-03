@@ -336,6 +336,7 @@ class HandlerSubsystem:
         """
         Return the instantiated handler object for a given name or None if it is not instantiated
         """
+        # print(self.handler_instance)
         for h in self.handler_instance:
             if h.__class__.__name__ == handler_name:
                 return h
@@ -350,13 +351,14 @@ class HandlerSubsystem:
         # get the main robot config
         return self.executing_config.getRobotByName(self.executing_config.main_robot)
 
-    def getHandlerInstanceByType(self, handler_type_class, robot_name = ""):
+    def getHandlerInstanceByType(self, handler_type_class, robot_name=""):
         """
         Return the handler instance of the given handler type
         When no robot_name is given, the handler is assumed to be of the main robot
         When the handler type is either sensor or actuator, a robot_name is required
         Return None if the handler instance cannot be found
         """
+        # print("Get Handler Instance By Type: " + str(handler_type_class))
         if robot_name == "":
             # no robot is specified
             if handler_type_class in [ht.SensorHandler, ht.ActuatorHandler]:
@@ -369,6 +371,7 @@ class HandlerSubsystem:
             robot_config = self.executing_config.getRobotByName(robot_name)
 
         # now look for the handler instance of the given type
+        # print(robot_config.getHandlerOfRobot(handler_type_class).name)
         handler_instance = self.getHandlerInstanceByName(robot_config.getHandlerOfRobot(handler_type_class).name)
 
         return handler_instance
@@ -492,6 +495,7 @@ class HandlerSubsystem:
 
             # find the handler class object
             h_name, h_type, handler_class = HandlerConfig.loadHandlerClass(handler_module_path)
+            # print((h_name, h_type, handler_class))
 
             # get the HMC for the init_method
             init_method_config = handler_config.getMethodByName("__init__")
@@ -501,18 +505,23 @@ class HandlerSubsystem:
 
             # everyone except for InitHandler gets shared_data too
             if h_type is not ht.InitHandler:
-                arg_dict.update({"shared_data":self.executor.proj.shared_data})
+                arg_dict.update({"shared_data": self.executor.proj.shared_data})
 
             # add any arguments specific to this method
             arg_dict.update(init_method_config.getArgDict())
+            # print(arg_dict)
 
             # instantiate the handler
             try:
                 h = handler_class(**arg_dict)
-            except Exception:
+            except Exception as e:
+                # print(handler_class)
+                # print(arg_dict)
+                print(e)
                 logging.exception("Failed during handler {} instantiation".format(handler_module_path))
             else:
                 self.handler_instance.append(h)
+
         return h
 
     def prepareMapping(self):

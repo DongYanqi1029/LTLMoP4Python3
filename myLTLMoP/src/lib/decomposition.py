@@ -399,7 +399,7 @@ class decomposition():
                 
         initial_i = i   
         #while i < initial_i + len(allVertices)-1:
-        for i in xrange(initial_i, initial_i+len(allVertices)):
+        for i in range(initial_i, initial_i+len(allVertices)):
             a = (i-1)%len(allVertices)
             b = (i)%len(allVertices)
             c = (i+1)%len(allVertices)

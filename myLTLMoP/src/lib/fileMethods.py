@@ -130,7 +130,7 @@ def writeToFile(fileName, data, comments={}):
     """
 
     # If we don't have any section titles, make a placeholder second layer
-    if type(data[data.keys()[0]]) is types.ListType:
+    if isinstance(data[list(data.keys())[0]], list):
         data = {'': data}
 
     f = open(fileName, "w")
@@ -157,7 +157,7 @@ def writeToFile(fileName, data, comments={}):
                 print(properCase(header) + ":", file=f)
 
             # Plain values are ok too!
-            if type(values) is not types.ListType:
+            if not isinstance(values, list):
                 values = [str(values)]
 
             for value in values:

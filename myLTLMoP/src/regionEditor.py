@@ -11,9 +11,9 @@
 
 import sys, copy, re, shutil
 import traceback, types
-import cPickle, os.path, os
-import wxversion
-#wxversion.select('2.8')
+import os.path, os
+# import wxversion
+# wxversion.select('2.8')
 import wx
 from wx.lib.buttons import GenBitmapButton
 
@@ -49,12 +49,12 @@ SNAP_RADIUS = 10
  menu_SELECT_ALL,   menu_DUPLICATE,     menu_EDIT_REGION,
  menu_DELETE,       menu_SELECT,        menu_RECT,
  menu_POLY,         menu_ADD_PT,        menu_DEL_PT,
- menu_CALIB_PT,     menu_ABOUT] = [wx.NewId() for i in range(14)]
+ menu_CALIB_PT,     menu_ABOUT] = [wx.NewIdRef() for i in range(14)]
 
 # Tool IDs:
 
 [id_SELECT,     id_RECT,    id_POLY,
- id_ADD_PT,     id_DEL_PT,  id_CALIB_PT] = [wx.NewId() for i in range(6)]
+ id_ADD_PT,     id_DEL_PT,  id_CALIB_PT] = [wx.NewIdRef() for i in range(6)]
 
 # Mousing operations:
 # TODO: Actually implement the rotation operation (CTRL+handledrag?)
@@ -161,23 +161,12 @@ class DrawingFrame(wx.Frame):
         self.toolbar = self.CreateToolBar(wx.TB_HORIZONTAL |
                                           wx.NO_BORDER | wx.TB_FLAT)
 
-        self.toolbar.AddSimpleTool(wx.ID_NEW,
-                                   wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize),
-                                   "New")
-        self.toolbar.AddSimpleTool(wx.ID_OPEN,
-                                   wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize),
-                                   "Open")
-        self.toolbar.AddSimpleTool(wx.ID_SAVE,
-                                   wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, tsize),
-                                   "Save")
+        self.toolbar.AddTool(wx.ID_NEW, "New", wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize))
+        self.toolbar.AddTool(wx.ID_OPEN, "Open", wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize))
+        self.toolbar.AddTool(wx.ID_SAVE, "Save", wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, tsize))
         self.toolbar.AddSeparator()
-        self.toolbar.AddSimpleTool(menu_UNDO,
-                                   wx.ArtProvider.GetBitmap(wx.ART_UNDO, wx.ART_TOOLBAR, tsize),
-                                   "Undo")
-        self.toolbar.AddSimpleTool(menu_DUPLICATE,
-                                   wx.Bitmap("images/duplicate.bmp",
-                                            wx.BITMAP_TYPE_BMP),
-                                   "Duplicate")
+        self.toolbar.AddTool(menu_UNDO, "Undo", wx.ArtProvider.GetBitmap(wx.ART_UNDO, wx.ART_TOOLBAR, tsize))
+        self.toolbar.AddTool(menu_DUPLICATE, "Duplicate", wx.Bitmap("images/duplicate.bmp", wx.BITMAP_TYPE_BMP))
         self.toolbar.Realize()
 
         # Associate each menu/toolbar item with the method that handles that
@@ -337,7 +326,7 @@ class DrawingFrame(wx.Frame):
         elif iconID == id_ADD_PT:    self.doChooseAddPtTool()
         elif iconID == id_DEL_PT:    self.doChooseDelPtTool()
         elif iconID == id_CALIB_PT: self.doChooseCalibPtTool()
-        else:                       print "Tool not yet implemented"
+        else:                       print("Tool not yet implemented")
 
     def onKeyEvent(self, event):
         """ Respond to a keypress event.
@@ -413,7 +402,7 @@ class DrawingFrame(wx.Frame):
         elif self.curTool == self.calibPtIcon:
             selecting    = False
         else:
-            print "Unknown tool"
+            print("Unknown tool")
             return
 
         if event.LeftDown():
@@ -877,14 +866,14 @@ class DrawingFrame(wx.Frame):
             self.recalcAdjacency()
 
         self.drawPanel.PrepareDC(dc)
-        dc.BeginDrawing()
+        # dc.BeginDrawing()
         # TODO: Alpha BG so you can make it lighter
         if self.backgroundImage != None:
             dc.DrawBitmap(self.backgroundImage, 0, 0, False)
         
         self.drawRegions(dc, pdc)
 
-        dc.EndDrawing()
+        # dc.EndDrawing()
         
     def drawRegions(self, dc, pdc, drawLabels=True, drawAdjacencies=True):
         for i in range(len(self.rfi.regions)-1, -1, -1):
@@ -1771,7 +1760,7 @@ class DrawingFrame(wx.Frame):
 
         dc = wx.ClientDC(self.drawPanel)
         self.drawPanel.PrepareDC(dc)
-        dc.BeginDrawing()
+        # dc.BeginDrawing()
         dc.SetPen(wx.BLACK_DASHED_PEN)
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         
@@ -1790,7 +1779,7 @@ class DrawingFrame(wx.Frame):
                 dc.DrawRectangle(position.x + offsetX, position.y + offsetY,
                                  size.width, size.height)
     
-        dc.EndDrawing()
+        # dc.EndDrawing()
 
 
     def _drawVisualFeedback(self, startPt, endPt, type, dashedLine):
@@ -1813,7 +1802,7 @@ class DrawingFrame(wx.Frame):
         """
         dc = wx.ClientDC(self.drawPanel)
         self.drawPanel.PrepareDC(dc)
-        dc.BeginDrawing()
+        # dc.BeginDrawing()
         if dashedLine:
             dc.SetPen(wx.BLACK_DASHED_PEN)
         else:
@@ -1834,7 +1823,7 @@ class DrawingFrame(wx.Frame):
             dc.DrawLine(startPt[0].x, startPt[0].y, endPt.x, endPt.y)
             dc.DrawLine(startPt[1].x, startPt[1].y, endPt.x, endPt.y)
 
-        dc.EndDrawing()
+        # dc.EndDrawing()
 
 
 #----------------------------------------------------------------------------

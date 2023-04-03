@@ -141,13 +141,15 @@ class LTLMoPExecutor(ExecutorStrategyExtensions,ExecutorResynthesisExtensions, o
         if rfi is None:
             rfi = self.proj.rfi
 
+        print(self.hsub.getPose())
         pose = self.hsub.coordmap_lab2map(self.hsub.getPose())
+        print(pose)
 
         region = next((i for i, r in enumerate(rfi.regions) if r.name.lower() != "boundary" and \
                         r.objectContainsPoint(*pose)), None)
 
         if region is None:
-            logging.warning("Pose of {} not inside any region!".format(pose))
+            print("Pose of {} not inside any region!".format(pose))
 
         return region
 

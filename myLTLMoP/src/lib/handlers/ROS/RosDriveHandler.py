@@ -13,7 +13,7 @@ from math import sin, cos
 import lib.handlers.handlerTemplates as handlerTemplates
 
 class RosDriveHandler(handlerTemplates.DriveHandler):
-    def __init__(self, executor, shared_data,d=0.6):
+    def __init__(self, executor, shared_data, d=0.6):
         """
         Initialization method of differential drive handler.
 
@@ -21,7 +21,7 @@ class RosDriveHandler(handlerTemplates.DriveHandler):
         """
 
         try:
-            self.loco = executor.hsub.getHandlerInstanceByType(handlerTemplates.LocomotionCommanHandler)
+            self.loco = executor.hsub.getHandlerInstanceByType(handlerTemplates.LocomotionCommandHandler)
             self.coordmap = executor.hsub.coordmap_lab2map
         except NameError:
             print("(DRIVE) Locomotion Command Handler not found.")
@@ -43,5 +43,5 @@ class RosDriveHandler(handlerTemplates.DriveHandler):
         w = (1/self.d)*(-sin(theta)*vx + cos(theta)*vy)
         v = cos(theta)*vx + sin(theta)*vy
 
-        self.loco.sendCommand([v,w,vz])
+        self.loco.sendCommand([v, w, vz])
 

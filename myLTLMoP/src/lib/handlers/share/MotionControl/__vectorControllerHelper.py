@@ -34,7 +34,7 @@ def getController(p, vert, exit, last=False):
 	[d, min_d, ROI] = getRegion(p, vert)
 	s = getSParam(d, ROI)
 	b = getBump(s)
-	if size(array(ROI))==1:
+	if size(array(ROI)) == 1:
 		Vf = getFaceVF(vert, ROI, exit)
 	else:
 		Vf = [0, 0]
@@ -69,8 +69,8 @@ def getRegion(p, v):
 			d[i, 0] = abs((V[0, i+1] - V[0, i]) * (V[1, i] - p[1]) - \
 				(V[0, i] - p[0]) * (V[1, i+1] - V[1, i])) / \
 				sqrt(square(V[0, i+1] - V[0, i]) + square(V[1, i+1] - V[1, i]))
-	min_d = min(d) # 距离某个cell surface的最短距离
-	ROI = d.argmin() # 所在区域
+	min_d = min(d)  # 距离某个cell surface的最短距离
+	ROI = d.argmin()  # the index of the face to which the current point is closest
 	return [d, min_d, ROI]
 
 

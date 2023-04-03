@@ -24,6 +24,8 @@ class VectorControllerHandler(handlerTemplates.MotionControlHandler):
         # Get references to handlers we'll need to communicate with
         self.drive_handler = executor.hsub.getHandlerInstanceByType(handlerTemplates.DriveHandler)
         self.pose_handler = executor.hsub.getHandlerInstanceByType(handlerTemplates.PoseHandler)
+        # print(self.drive_handler)
+        # print(self.pose_handler)
 
         # Get information about regions
         self.rfi = executor.proj.rfi
@@ -58,7 +60,7 @@ class VectorControllerHandler(handlerTemplates.MotionControlHandler):
         pointArray = map(self.coordmap_map2lab, pointArray)
         vertices = mat(pointArray).T
 
-        vertices = matrix(list(vertices[0,0])).transpose()
+        vertices = matrix(list(vertices[0, 0])).transpose()
 
         if last:
             transFaceIdx = None
@@ -96,7 +98,7 @@ class VectorControllerHandler(handlerTemplates.MotionControlHandler):
         vertices = mat(pointArray).T
 
         vertices = matrix(list(vertices[0,0])).transpose()
-        logging.warning(vertices)
+        # logging.warning(vertices)
 
         # Figure out whether we've reached the destination region
         arrived = is_inside([pose[0], pose[1]], vertices)
