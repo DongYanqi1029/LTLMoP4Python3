@@ -47,6 +47,7 @@ class ExecutorStrategyExtensions(object):
         # find current region
         logging.info("=============== Strategy Iteration ===============")
         self.current_region = self.strategy.current_state.getPropValue('region')
+        # print("current_region: " + self.current_region)
 
         # Take a snapshot of our current SENSOR readings
         sensor_state = self.hsub.getSensorValue(self.proj.enabled_sensors)

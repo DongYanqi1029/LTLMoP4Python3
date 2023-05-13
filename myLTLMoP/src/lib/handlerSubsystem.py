@@ -739,7 +739,7 @@ class HandlerSubsystem:
         where actuator_value is a boolean value that gets passed to actuator handler
         """
 
-        for prop_name, actuator_value in actuator_state.iteritems():
+        for prop_name, actuator_value in actuator_state.items():
             if prop_name not in self.prop2func.keys():
                 raise ValueError("Cannot find proposition {} in the given proposition mapping".format(prop_name))
             else:

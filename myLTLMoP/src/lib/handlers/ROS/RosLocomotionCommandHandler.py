@@ -29,19 +29,18 @@ class RosLocomotionCommandHandler(handlerTemplates.LocomotionCommandHandler):
 		except:
 			print('Problem setting up Locomotion Command Node')
 
-	def sendCommand(self, cmd):
+	def sendCommand(self, linear_vel, angular_vel):
 
-		#Twist is the message type and consists of x,y,z linear velocities
-		#and roll, pitch, yaw orientation velocities (x,y,z)
-		twist=Twist()
-		#Positive x is forward on robots in Gazebo
-		twist.linear.x=cmd[0]*4
-		#Positive z is upward on robots in Gazebo
-		twist.linear.z=cmd[2]*4
-		#Angluar z is yaw or rotation in the xy plane
-		twist.angular.z=cmd[1]*1.5
+		# Twist is the message type and consists of x,y,z linear velocities
+		# and roll, pitch, yaw orientation velocities (x,y,z)
+		twist = Twist()
+		# Positive x is forward on robots in Gazebo
+		twist.linear.x = linear_vel
+		# Positive z is upward on robots in Gazebo
+		# Angular z is yaw or rotation in the xy plane
+		twist.angular.z = angular_vel
 		try:
-			#Publish the command to the robot
+			# Publish the command to the robot
 			self.pub.publish(twist)
 		except:
 			print('Error publishing Twist Command')

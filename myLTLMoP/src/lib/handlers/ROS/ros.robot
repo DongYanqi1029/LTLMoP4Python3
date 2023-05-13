@@ -20,7 +20,8 @@ MotionControlHandler: # Robot default motion control handler with default argume
 # share.MotionControl.HeatControllerHandler()
 # share.MotionControl.VectorControllerHandler()
 # ROS.ROSMotionControlHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
-share.MotionControl.RRTControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
+# share.MotionControl.RRTControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
+ROS.RRTandTD3ControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=False)
 
 DriveHandler: # Robot default drive handler with default argument values
 ROS.RosDriveHandler(d=.6)

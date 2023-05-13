@@ -76,7 +76,7 @@ class Domain(object):
             try:
                 return self.value_mapping[n]
             except IndexError:
-                relevant_assignments = {k: v for k, v in prop_assignments.iteritems() if k in self.getPropositions()}
+                relevant_assignments = {k: v for k, v in prop_assignments.items() if k in self.getPropositions()}
                 raise ValueError("Invalid assignment of {!r} to domain {!r} ({} > {})".format(relevant_assignments, self.name,
                                                                                               n, len(self.value_mapping)-1))
 
@@ -265,6 +265,7 @@ class State(object):
         #    subpropositions, try to upconvert the subpropositions to a single
         #    multivalent proposition
         domain = self.context.getDomainByName(name)
+
         if domain is not None:
             # Try to calculate the value of the domain
             value = domain.propAssignmentsToValue(self.assignment)

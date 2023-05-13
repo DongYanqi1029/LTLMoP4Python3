@@ -28,7 +28,7 @@ def StartOpenAI_ROS_Environment(task_and_robot_environment_name):
 
     if result:
         rospy.logwarn("Register of Task Env went OK, lets make the env..."+str(task_and_robot_environment_name))
-        env = gym.make(task_and_robot_environment_name)
+        env = gym.make(task_and_robot_environment_name, apply_api_compatibility=True)
     else:
         rospy.logwarn("Something Went wrong in the register")
         env = None
@@ -225,9 +225,9 @@ class ROSLauncher(object):
         # ADD HERE THE GITs List To Your Simuation
 
         else:
-            rospy.logerr("Package [ >"+package_name +
+            rospy.logerr("Package [ >"+ package_name +
                          "< ] is not supported for autodownload, do it manually into >"+str(ros_ws_abspath))
-            assert False, "The package "++ \
+            assert False, "The package "+ package_name + \
                 " is not supported, please check the package name and the git support in openai_ros_common.py"
 
         # If a Git for the package is supported

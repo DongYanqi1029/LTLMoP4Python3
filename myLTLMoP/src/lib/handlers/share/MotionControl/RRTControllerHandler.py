@@ -316,8 +316,8 @@ class RRTControllerHandler(handlerTemplates.MotionControlHandler):
         dis_cur = vstack((V[1, int(E[1, self.E_current_column])], V[2, int(E[1, self.E_current_column])])) - pose
 
         heading = int(E[1, self.E_current_column])        # index of the current heading point on the tree
-        if norm(dis_cur) < 1.5*self.radius:         # go to next point
-            if not heading == shape(V)[1]-1:
+        if norm(dis_cur) < 1.5*self.radius:         # already reached target point
+            if not heading == shape(V)[1]-1:  # go to the last point
                 self.E_current_column = self.E_current_column + 1
                 dis_cur = vstack((V[1, int(E[1, self.E_current_column])],V[2,E[1,self.E_current_column]])) - pose
             #else:
@@ -344,7 +344,7 @@ class RRTControllerHandler(handlerTemplates.MotionControlHandler):
         pose     = mat(p).T
 
         #dis_cur = distance between current position and the next point
-        dis_cur  = vstack((V[1,E[1,self.E_current_column]],V[2,E[1,self.E_current_column]]))- pose
+        dis_cur = vstack((V[1,E[1,self.E_current_column]],V[2,E[1,self.E_current_column]]))- pose
 
         heading = E[1,self.E_current_column]        # index of the current heading point on the tree
         if norm(dis_cur) < 1.5*self.radius:         # go to next point

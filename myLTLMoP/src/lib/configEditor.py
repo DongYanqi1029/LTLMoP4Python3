@@ -34,7 +34,7 @@ CALIB_PORT = 23460
 
 def drawParamConfigPane(target, method, proj):
     if target.GetSizer() is not None:
-        target.GetSizer().Clear(deleteWindows=True)
+        target.GetSizer().Clear(delete_windows=True)
 
     list_sizer = wx.BoxSizer(wx.VERTICAL)
 

@@ -27,8 +27,7 @@ class RosDriveHandler(handlerTemplates.DriveHandler):
             print("(DRIVE) Locomotion Command Handler not found.")
             exit(-1)
 
-        self.d = d
-    def setVelocity(self, x, y, theta=0, z = 0):
+    def setVelocity(self, linear_vel, angular_vel):
         #print "VEL:%f,%f" % tuple(self.coordmap([x, y]))
 
         # Feedback linearization code:
@@ -37,11 +36,6 @@ class RosDriveHandler(handlerTemplates.DriveHandler):
         #vx = 0.09*X[0,0]
         #vy = 0.09*X[1,0]
         # ^^ Changed the scaling because it was getting stuck - too high of a velocity ? - Hadas 20/12/07
-        vx = 0.29*x
-        vy = 0.29*y
-        vz = 0.29*z
-        w = (1/self.d)*(-sin(theta)*vx + cos(theta)*vy)
-        v = cos(theta)*vx + sin(theta)*vy
 
-        self.loco.sendCommand([v, w, vz])
+        self.loco.sendCommand(linear_vel, angular_vel)
 

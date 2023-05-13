@@ -204,6 +204,17 @@ def RegisterOpenAI_Ros_Env(task_env, max_episode_steps=10000):
         # import our training environment
         from openai_ros.task_envs.wamv import wamv_nav_twosets_buoys
 
+    elif task_env == 'MyRobotWorld-v0':
+
+        register(
+            id=task_env,
+            entry_point='openai_ros.task_envs.myrobot.myrobot_world:MyRobotWorldEnv',
+            max_episode_steps=max_episode_steps,
+        )
+
+        # import our training environment
+        from openai_ros.task_envs.myrobot import myrobot_world
+
     # Add here your Task Envs to be registered
     else:
         result = False
@@ -226,7 +237,7 @@ def GetAllRegisteredGymEnvs():
     return EX: ['Copy-v0', 'RepeatCopy-v0', 'ReversedAddition-v0', ... ]
     """
 
-    all_envs = envs.registry.all()
+    all_envs = envs.registry.values()
     env_ids = [env_spec.id for env_spec in all_envs]
 
     return env_ids

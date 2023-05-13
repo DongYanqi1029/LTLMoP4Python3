@@ -3,12 +3,12 @@
   <arg name="robot_package" default="simulator_gazebo" />
   <arg name="robot_launch" default="turtlebot3_burger.launch" />
 
-  <arg name="x" default="1.113408889111027" />
-  <arg name="y" default="-1.4266352457684013" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
   <arg name="z" default="0.01" />
   <arg name="roll" default="0.0"/>
   <arg name="pitch" default="0.0"/>
-  <arg name="yaw" default="0.0"/>
+  <arg name="yaw" default="1.57"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find simulator_gazebo)/worlds/ltlmop_map.world"/>
