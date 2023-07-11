@@ -7,7 +7,7 @@ rosSensor.py - Sensor handler for the ROS interface
 
 import roslib
 import rospy
-from sensor_msgs.msg import *
+from sensor_msgs.msg import LaserScan
 
 import lib.handlers.handlerTemplates as handlerTemplates
 
@@ -27,6 +27,7 @@ class RosSensorHandler(handlerTemplates.SensorHandler):
 		This is a template for a subscriber type sensor interface
 		"""
 		self.returnVal=False
+
 		def processData(data, sensor):
 			# This gets called from the Subscriber
 			# Do some processing here
@@ -34,6 +35,7 @@ class RosSensorHandler(handlerTemplates.SensorHandler):
 			# Data is a message, its properties are what you want to evaluate
 			# sensor is the sensorHandler (self)
 			sensor.returnVal = False
+
 		if initial:
 			# This is the topic you want to listen to
 			self.topic = ''
@@ -48,33 +50,6 @@ class RosSensorHandler(handlerTemplates.SensorHandler):
 			# and self (for global variable access)
 			rospy.Subscriber(self.topic, eval(self.messageType), processData, self)
 			# You must return boolean
-			return self.returnVal
-
-	def tiltScan(self, operator='<', value=9.0, initial=False):
-		"""
-		This is a sample sensor interface utilizing the tilt_scan
-
-		operator (str): How to compare the value to the data (default='<')
-		value (float): The value to compare the data to in m (default=9.0)
-		"""
-		self.value=value
-		self.operator=operator
-		self.returnVal=False
-		def processData(data, sensor):
-			try:
-				avgRange=sum(data.ranges)/len(data.ranges)
-			except:
-				print('No Range Data')
-			sensor.returnVal = eval(str(avgRange)+self.operator+str(self.value))
-		if initial:
-			self.topic = 'tilt_scan'
-			self.messageType = 'LaserScan'
-		else:
-			try:
-				rospy.Subscriber(self.topic, eval(self.messageType), processData, self)
-			except:
-				print("Subscriber Failed")
-			if self.returnVal: print('Laser Scan is '+str(operator)+str(value))
 			return self.returnVal
 
 	def _service(self, initial=False):
@@ -95,3 +70,30 @@ class RosSensorHandler(handlerTemplates.SensorHandler):
 			# This creates the service
 			response = rospy.Service(self.serviceName, self.messageType, handleData)
 			return response
+
+	def avgScanData(self, initial=False):
+		"""
+		This is a sample sensor interface printing scan data
+		"""
+
+		self.returnVal = False
+
+		def processData(data, sensor):
+			avgRange = 0
+			try:
+				avgRange = sum(list(data.ranges))/len(list(data.ranges))
+			except:
+				print('No Range Data')
+			# print(avgRange)
+			sensor.returnVal = False
+
+		if initial:
+			self.topic = '/scan'
+			self.messageType = LaserScan
+		else:
+			try:
+				rospy.Subscriber(self.topic, self.messageType, processData, self)
+			except:
+				print("Subscriber Failed")
+
+			return self.returnVal

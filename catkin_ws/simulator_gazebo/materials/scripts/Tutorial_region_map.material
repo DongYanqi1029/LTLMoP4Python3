@@ -1,0 +1,16 @@
+material GroundPlane/Image
+    {
+      technique
+      {
+        pass
+        {
+
+
+          texture_unit
+          {
+            texture ../textures/Tutorial_region_map.png
+            filtering trilinear
+          }
+        }
+      }
+    }

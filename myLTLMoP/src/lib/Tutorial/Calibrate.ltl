@@ -4,17 +4,16 @@
 
 LTLSPEC -- Assumptions
 	(
-			TRUE & 
-			[](TRUE) & 
-			[]<>(TRUE)
+	[](TRUE) & []<>(TRUE)& 
+		!e.sensor1
 	);
 
 LTLSPEC -- Guarantees
 	(
-			 []<>( ((s.bit0 & !s.bit1))) & 
-			 []<>( ((!s.bit0 & s.bit1))) & 
-			 []<>( ((!s.bit0 & !s.bit1))) 
-
+		[] ( (!next(s.bit0) & next(s.bit1)) -> next(s.actuator1) ) & 
+		[]<>((s.bit0 & !s.bit1)) & 
+		[]<>((!s.bit0 & s.bit1)) & 
+		[]<>((!s.bit0 & !s.bit1))
 &
 			( (!s.bit0 & !s.bit1) 
 				 | (!s.bit0 & s.bit1)

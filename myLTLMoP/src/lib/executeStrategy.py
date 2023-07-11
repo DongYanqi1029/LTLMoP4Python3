@@ -27,9 +27,10 @@ class ExecutorStrategyExtensions(object):
 
         for key, output_val in state.getOutputs().items():
             # Skip any region
-            if 'region' == key: continue
+            if 'region' == key:
+                continue
 
-            if key not in self.current_outputs.keys() or output_val != self.current_outputs[key]:
+            if key not in list(self.current_outputs.keys()) or output_val != self.current_outputs[key]:
 
                 # The state of this output proposition has changed!
                 self.postEvent("INFO", "Output proposition \"%s\" is now %s!" % (key, str(output_val)))
@@ -83,6 +84,7 @@ class ExecutorStrategyExtensions(object):
 
             if self.proj.compile_options['fastslow']:
                 # Run ACTUATORS before motion
+                print('run act *')
                 self.updateOutputs(self.next_state)
 
             if self.transition_contains_motion:
@@ -96,8 +98,6 @@ class ExecutorStrategyExtensions(object):
             # Move one step towards the next region (or stay in the same region)
             self.arrived = self.hsub.gotoRegion(self.current_region, self.next_region)
 
-        # print(self.arrived)
-
         # Check for completion of motion
         if self.arrived and self.next_state != self.strategy.current_state:
             # TODO: Check to see whether actually inside next region that we expected
@@ -106,6 +106,7 @@ class ExecutorStrategyExtensions(object):
 
             if not self.proj.compile_options['fastslow']:
                 # Run ACTUATORS after motion
+                print("run act")
                 self.updateOutputs(self.next_state)
 
             self.strategy.current_state = self.next_state
@@ -113,7 +114,7 @@ class ExecutorStrategyExtensions(object):
 
             self.postEvent("INFO", "Now in state %s (z = %s)" % (self.strategy.current_state.state_id, self.strategy.current_state.goal_id))
 
-    def HSubGetSensorValue(self,sensorList):
+    def HSubGetSensorValue(self, sensorList):
         """
         This function takes in a list of sensorName and returns the dictionary of the propositions with values.
         This will be replaced by a function in handlerSubsystem.py in the future.

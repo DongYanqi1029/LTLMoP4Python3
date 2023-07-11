@@ -1,7 +1,7 @@
 import wx
 import math
 import sys, os
-from lib.regions import *
+from regions import *
 
 LABELS_NONE = False
 LABELS_ALL = True

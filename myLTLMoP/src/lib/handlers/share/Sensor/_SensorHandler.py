@@ -8,6 +8,7 @@ import wx.lib.delayedresult as delayedresult
 sys.path.append("lib")
 import project
 import mapRenderer
+import threading
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -36,18 +37,23 @@ class SensorEditorFrame(wx.Frame):
         self.map_scales = {}
 
         self.waitingForInput = False
-        self.Bind(wx.EVT_IDLE, self.onIdle)
+        # self.Bind(wx.EVT_IDLE, self.onIdle)
         
         self.host = 'localhost'
         self.port = 23459
         self.buf = 1024
-        self.addr = (self.host,self.port)
-        self.UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.UDPSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        self.addr = (self.host, self.port)
+        self.UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         # Let everyone know we're ready
         #print "Hello!"
-        self.UDPSock.sendto("Hello!\n",self.addr)
-        #self.UDPSock.close()        
+        self.UDPSock.sendto("Hello!\n".encode(), self.addr)
+        #self.UDPSock.close()
+
+        self._runnning = True
+        self.checkInputThread = threading.Thread(target=self.checkForInput)
+        self.checkInputThread.daemon = True
+        self.checkInputThread.start()
 
     def __set_properties(self):
         # begin wxGlade: SensorEditorFrame.__set_properties
@@ -69,7 +75,7 @@ class SensorEditorFrame(wx.Frame):
     def sensorToggle(self, event): # wxGlade: SensorEditorFrame.<event_handler>
         btn = event.GetEventObject()
 
-        self.UDPSock.sendto(btn.GetLabelText() + "=" + str(btn.GetValue()),self.addr)
+        self.UDPSock.sendto((btn.GetLabelText() + "=" + str(btn.GetValue())).encode(), self.addr)
         #print btn.GetLabelText() + "=" + str(btn.GetValue())
 
         # TODO: Button background colour doesn't show up very well
@@ -83,15 +89,19 @@ class SensorEditorFrame(wx.Frame):
         event.Skip()
 
     def checkForInput(self):
-        return sys.stdin.readline()
+        while self._runnning:
+            # input = sys.stdin.readline()
+            # print(input)
+            # print('#######')
+            self.updateFromInput(input)
 
     def updateFromInput(self, text):
         """
         We decide what buttons to create based on messages via stdin
         """
-        line = text.get().strip()
+        line = text.strip()
 
-        if line == ":QUIT" or line == '': # EOF means Executor crashed
+        if line == ":QUIT" or line == '':  # EOF means Executor crashed
             wx.CallAfter(self.Close)
             return
 
@@ -114,11 +124,11 @@ class SensorEditorFrame(wx.Frame):
                     self.buttons[-1].SetValue(False)
                     self.buttons[-1].SetBackgroundColour(wx.Colour(255, 0, 0)) 
 
-                # Bind to event handler
+                # Bind to event e
                 self.Bind(wx.EVT_BUTTON, self.sensorToggle, self.buttons[-1])
             elif sensor_type.strip().lower() == "region":
                 if self.proj is None:
-                    print "Error: region sensor cannot be created without a project loaded"
+                    print("Error: region sensor cannot be created without a project loaded")
                 else:
                     # initialize
                     self.map_state[sensor_name] = sensor_value
@@ -132,28 +142,31 @@ class SensorEditorFrame(wx.Frame):
                     self.map_panels[sensor_name].Bind(wx.EVT_PAINT, self.onMapPaint)
                     self.map_panels[sensor_name].Bind(wx.EVT_LEFT_DOWN, self.onMapClick)
             elif sensor_type.strip().lower() == "loadproj":
-                self.proj =  project.Project()
+                self.proj = project.Project()
                 self.proj.loadProject(sensor_name)
                 self.decomposedRFI = self.proj.loadRegionFile(decomposed=True)
 
             self.panel_1.Layout() # Update the frame
             self.onResize()
         except ValueError:
-            print "(SENSOR) WARNING: Unexpected message received!"
+            print("(SENSOR) WARNING: Unexpected message received!")
 
         self.waitingForInput = False  # Make sure another listener gets started
 
     def onIdle(self, event):
         # TODO: Use plain threading like other parts of LTLMoP?
         if not self.waitingForInput:
-            delayedresult.startWorker(self.updateFromInput, self.checkForInput)
+            # delayedresult.startWorker(self.updateFromInput, self.checkForInput, sendReturn=True)
+            self.checkInputThread = threading.Thread(target=self.checkForInput)
+            self.checkInputThread.daemon = True
+            self.checkInputThread.start()
             self.waitingForInput = True
         event.Skip()
 
     def onMapClick(self, event):
         panel = event.GetEventObject()
         panel_key = None
-        for k,v in self.map_panels.iteritems():
+        for k, v in self.map_panels.items():
             if v == panel:
                 panel_key = k
                 break
@@ -164,14 +177,14 @@ class SensorEditorFrame(wx.Frame):
             if region.objectContainsPoint(x, y):
                 if region.name != self.map_state[panel_key]:
                     self.map_state[panel_key] = region.name
-                    self.UDPSock.sendto(panel_key + "=" + region.name, self.addr)
+                    self.UDPSock.sendto((panel_key + "=" + region.name).encode(), self.addr)
                 break
 
-        self.onResize() # Force map redraw
+        self.onResize()  # Force map redraw
         event.Skip()
 
     def onResize(self, event=None):
-        for k, p in self.map_panels.iteritems():
+        for k, p in self.map_panels.items():
             size = p.GetSize()
             self.map_bitmaps[k] = wx.EmptyBitmap(size.x, size.y)
             self.map_scales[k] = mapRenderer.drawMap(self.map_bitmaps[k], self.decomposedRFI, scaleToFit=True, drawLabels=True, memory=True, highlightList=self.map_state[k])
@@ -185,7 +198,7 @@ class SensorEditorFrame(wx.Frame):
     def onMapPaint(self, event):
         panel = event.GetEventObject()
         panel_key = None
-        for k,v in self.map_panels.iteritems():
+        for k, v in self.map_panels.items():
             if v == panel:
                 panel_key = k
                 break
@@ -199,12 +212,12 @@ class SensorEditorFrame(wx.Frame):
         except:
             dc = pdc
 
-        dc.BeginDrawing()
+        # dc.BeginDrawing()
 
         # Draw background
         dc.DrawBitmap(self.map_bitmaps[panel_key], 0, 0)
 
-        dc.EndDrawing()
+        # dc.EndDrawing()
 
         event.Skip()
 

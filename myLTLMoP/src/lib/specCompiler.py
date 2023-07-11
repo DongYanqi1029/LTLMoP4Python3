@@ -101,7 +101,7 @@ class SpecCompiler(object):
                     del self.parser.proj.rfi.regions[self.parser.proj.rfi.indexOfRegionWithName(sub_r)]
 
                     # Remove decomposed region from any overlapping mappings
-                    for k,v in self.parser.proj.regionMapping.iteritems():
+                    for k,v in self.parser.proj.regionMapping.items():
                         if k == r.name: continue
                         if sub_r in v:
                             v.remove(sub_r)
@@ -650,7 +650,7 @@ class SpecCompiler(object):
         proj_copy.h_instance = None
 
         num_bits = int(numpy.ceil(numpy.log2(len(self.parser.proj.rfi.regions))))  # Number of bits necessary to encode all regions
-        region_props = ["bit" + str(n) for n in xrange(num_bits)]
+        region_props = ["bit" + str(n) for n in range(num_bits)]
 
         aut = fsa.Automaton(proj_copy)
         aut.loadFile(self.proj.getFilenamePrefix()+".aut", self.proj.enabled_actuators + self.proj.all_customs + region_props, self.proj.enabled_sensors, [])

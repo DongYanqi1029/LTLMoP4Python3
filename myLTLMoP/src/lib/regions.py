@@ -16,7 +16,10 @@
 # TODO: store regions with absolute coordinates, not x/y-pos + relative!!
 
 import os, sys, copy
-import lib.fileMethods as fileMethods
+
+sys.path.insert(0, "./lib")
+
+import fileMethods
 import re, random, math
 import Polygon, Polygon.Utils, os
 import json
@@ -481,7 +484,7 @@ class Region(object):
     """
 
     def __init__(self, type=reg_POLY, position=Point(0, 0), size=Size(0, 0),
-                 height=0, color=None, points=None, name=''):
+                 height=0.5, color=None, points=None, name=''):
 
         if color is None:
             # Give a random color

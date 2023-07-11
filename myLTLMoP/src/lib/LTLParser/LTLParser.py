@@ -693,7 +693,7 @@ class Parser(object):
             if done:
                 break
 
-            expect = [ t for s,t in self._reduce.keys()+self._shift.keys()
+            expect = [ t for s,t in list(self._reduce.keys())+list(self._shift.keys())
                        if s == state ]
             errors.append((lookahead, expect))
             if self.max_err is not None and len(errors) >= self.max_err:
@@ -713,7 +713,7 @@ class Parser(object):
             m = len(queue)
             for i in range(0, self.n):
                 try:
-                    queue.append(input.next())
+                    queue.append(next(input))
                 except StopIteration:
                     break
 

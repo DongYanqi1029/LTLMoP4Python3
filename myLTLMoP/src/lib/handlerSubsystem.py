@@ -79,10 +79,10 @@ class HandlerSubsystem:
 
         self.prop2func = {}         # a mapping from a proporsition to a handler function for execution
         self.handler_instance = []  # a list of handler instances that are instantiated
-        self.method_configs = set() # a set of func references
+        self.method_configs = set()  # a set of func references
 
-        self.coordmap_map2lab = None# function that maps from map coord to lab coord
-        self.coordmap_lab2map = None# function that maps from lab coord to map coord
+        self.coordmap_map2lab = None  # function that maps from map coord to lab coord
+        self.coordmap_lab2map = None  # function that maps from lab coord to map coord
 
         # Create Handler path
         self.handler_path = os.path.join('lib','handlers')
@@ -574,6 +574,16 @@ class HandlerSubsystem:
         instantiate all the handlers of the main robot of the current executing config
         instantiate only the init handler of the non-main robot
         """
+        print("Instantiating All Handlers...")
+
+        # get the main robot config
+        robot_config = self.getMainRobot()
+
+        # first make sure the coord transformation function is ready
+        if self.coordmap_map2lab is None:
+            self.coordmap_map2lab, self.coordmap_lab2map = robot_config.getCoordMaps()
+            self.executor.proj.coordmap_map2lab, self.executor.proj.coordmap_lab2map = robot_config.getCoordMaps()
+
         for robot in self.executing_config.robots:
             if robot.name == self.executing_config.main_robot:
                 # this is a main robot
@@ -701,7 +711,7 @@ class HandlerSubsystem:
             logging.error("Cannot find handler dictionary, please load all handler first.")
             return
 
-        if not isinstance(method_config,HandlerMethodConfig):
+        if not isinstance(method_config, HandlerMethodConfig):
             logging.error("Input is not a valid method config.")
             return
 
@@ -714,7 +724,7 @@ class HandlerSubsystem:
 
         # convert all parameter object into string
         para_info = ', '.join("{}={!r}".format(k, v)
-                              for k, v in method_config.getArgDict().iteritems())
+                              for k, v in method_config.getArgDict().items())
 
         return '.'.join([robot_name, handler_name, method_name])+'('+para_info+')'
 
@@ -740,11 +750,10 @@ class HandlerSubsystem:
         """
 
         for prop_name, actuator_value in actuator_state.items():
-            if prop_name not in self.prop2func.keys():
+            if prop_name not in list(self.prop2func.keys()):
                 raise ValueError("Cannot find proposition {} in the given proposition mapping".format(prop_name))
             else:
-                self.prop2func[prop_name](initial=False,
-                                          actuatorVal=actuator_value)
+                self.prop2func[prop_name](actuatorVal=actuator_value, initial=False)
 
     def saveAllConfigFiles(self):
         # save all config object

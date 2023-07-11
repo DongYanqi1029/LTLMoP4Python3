@@ -167,7 +167,7 @@ class decomposition():
                 while not clean:
                     points = removeDuplicatePoints(points)
                     clean = True                
-                    for i in xrange(len(points)):
+                    for i in range(len(points)):
                         a = points[(i-1)%len(points)]
                         b = points[(i)%len(points)]
                         c = points[(i+1)%len(points)]
@@ -274,7 +274,7 @@ class decomposition():
     def checkNextPoly(self,allVertices):
         initialIndex = (self.indexOfVertex-1)%len(allVertices)
 
-        for i in xrange(initialIndex+1, (initialIndex+1)+len(allVertices)):
+        for i in range(initialIndex+1, (initialIndex+1)+len(allVertices)):
             self.indexOfVertex = i
             index1 = (self.indexOfVertex-1)%len(allVertices)
             index2 = (self.indexOfVertex)%len(allVertices)

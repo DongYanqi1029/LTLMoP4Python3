@@ -22,6 +22,7 @@ import logging
 import importlib
 import lib.handlers.handlerTemplates as ht
 from hsubParsingUtils import parseCallString
+import copy
 
 
 ###################################################
@@ -112,7 +113,14 @@ class MethodParameterConfig(object):
                            [(k, str) for k in ('region', 'str', 'string', 'choice')] +
                            [(k, list) for k in ('multichoice',)])
 
-        if not isinstance(value, valid_types[self.para_type.lower()]):
+        type = valid_types[self.para_type.lower()]
+        if type == float:
+            try:
+                value = float(value)
+            except Exception:
+                raise TypeError("Cannot transfer type {} to type float".format(type(value)))
+
+        if not isinstance(value, type):
             raise ValueError("Invalid {} value: {!r} for parameter {!r}".format(self.para_type, value, self.name))
             return
 

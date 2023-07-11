@@ -1,0 +1,15 @@
+myrobot: #namespace
+    task_and_robot_environment_name: 'MyRobotWorld-v0'
+    ros_ws_abspath: "/home/dongyanqi/catkin_ws"
+    actor_path: "/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models/PPO_actor.pth"
+    critic_path: "/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models/PPO_critic.pth"
+
+    total_timesteps: 20000
+    timesteps_per_batch: 1000
+    max_timesteps_per_episode: 500
+    n_updates_per_iteration: 6
+    stddev: 0.3
+    GAMMA: 0.99
+    CLIP: 0.2
+    ACTOR_LEARNING_RATE: 0.001 
+    CRITIC_LEARNING_RATE: 0.003

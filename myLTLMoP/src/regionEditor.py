@@ -1768,7 +1768,7 @@ class DrawingFrame(wx.Frame):
         if sys.platform != 'darwin':
             dc.SetLogicalFunction(wx.INVERT)
 
-        for i in xrange(len(self.selection)):
+        for i in range(len(self.selection)):
             position = self.selection[i].position
             size     = self.selection[i].size
     
@@ -1988,7 +1988,7 @@ class EditRegionDialog(wx.Dialog):
         """ Copy the properties from the dialog box into the given text object.
         """
         obj.name = self.textCtrl.GetValue()
-        obj.color = Color(*self.colorPicker.GetColour())
+        obj.color = Color(*self.colorPicker.GetColour()[:3])
         obj.isObstacle = self.checkbox_obstacle.GetValue()
         obj.height = float(self.textCtrl2.GetValue())
 

@@ -10,8 +10,10 @@ MODULE main
 
 MODULE env -- inputs
     VAR
+		sensor1 : boolean;
 
 MODULE sys -- outputs
     VAR
+		actuator1 : boolean;
 		bit0 : boolean;
 		bit1 : boolean;

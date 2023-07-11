@@ -1,9 +1,24 @@
 # **myLTLMoP**
 
-## **Multi-agent Simulation**
+## **任务场景**
+- Single-agent patrolling
 
-- 开启多个specEditor来实现多个机器人
-- 确保多个机器人都是使用的同一个region map
-- 根据region map来实现world文件的编写
-- 修改initHnadler的编写，做到模块化，使得world文件由region map决定，机器人的加入在launch文件中体现
-- 使用cheetah进行world以及launch文件的模板化自动生成
+## **常见修改**
+- dict.keys()在python3中并不是列表
+- iteritems() -> items()
+- print
+- UDPSocket.recvFrom sendTo stdin.write 对应的encode与decode
+- xrange -> range
+
+## **Sensors & Actuators**
+- 使用hsub中的getSensorValue方法得到sensor命题值(调用方法，后得到命题返回值)
+- executeStrategy updateOutputs->hsub.setActuactorValue(更新命题值，后调用方法)
+- 不支持instantaneous action
+
+## **Proposition Mapping**
+- 在命题映射中，软件使用handler对应方法的备注来得到方法的参数类型等信息
+- sensor与actuator的命题映射函数在对应的hander方法中寻找
+
+## **待实现功能**
+- 强化学习能力改进
+- 优化网络模型的保存与读取方式

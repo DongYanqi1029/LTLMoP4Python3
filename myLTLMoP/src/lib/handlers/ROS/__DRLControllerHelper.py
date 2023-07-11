@@ -8,14 +8,16 @@ import cmath
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Policy():
-    def __init__(self, policy_name, model_path):
+    def __init__(self, model_name, model_path):
         self.policy = None
-        self.policy_name = policy_name
+        self.model_name = model_name
         self.model_path = model_path
 
-        if self.policy_name == "TD3":
-            self.model_path += '/TD3_MyRobotWorld-v0_actor'
-            self.policy = networks.Actor(36+2+1, 1, np.array([0.3])).to(device)
+        self.model_path += '/' + self.model_name
+        if 'TD3' in self.model_name:
+            self.policy = networks.Actor(24+2+1, 1, np.array([1.0])).to(device)
+            self.state_dim = 27
+            self.scan_ob_dim = 24
 
         self.policy.load_state_dict(torch.load(self.model_path))
         self.last_action = np.zeros(1)
@@ -32,7 +34,7 @@ class Observation():
         self.pose = pose
         self.target = target
         self.last_action = last_action
-        self.max_laser_value = 6
+        self.max_laser_value = 3
         self.min_laser_value = 0
 
     def get_scan_data(self):
@@ -89,17 +91,17 @@ class Observation():
 
         return goal_ob
 
-    def get_ob(self):
+    def get_state(self):
         scan_ob = self.get_scan_ob()
         goal_ob = self.get_goal_ob()
-        last_action_ob = self.last_action
+        last_action_ob = list(self.last_action)
 
-        ob = scan_ob + goal_ob + last_action_ob
-        ob = np.array(ob)
+        state = scan_ob + goal_ob + last_action_ob
+        state = np.array(state)
 
         rospy.logdebug("Scan Observations==>" + str(scan_ob))
         rospy.logdebug("Goal Observations(distance, angle)==>" + str(goal_ob))
         rospy.logdebug("Last Action Observations==>" + str(last_action_ob))
 
-        return ob
+        return state
 

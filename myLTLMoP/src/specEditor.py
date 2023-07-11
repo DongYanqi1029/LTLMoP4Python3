@@ -1688,11 +1688,11 @@ class RedirectText:
     http://mail.python.org/pipermail/python-list/2007-June/445795.html
     """
 
-    def __init__(self,parent,aWxTextCtrl):
-        self.out=aWxTextCtrl
-        self.parent=parent
+    def __init__(self, parent, aWxTextCtrl):
+        self.out = aWxTextCtrl
+        self.parent = parent
 
-    def write(self,string):
+    def write(self, string):
         self.out.BeginTextColour("BLACK")
         self.out.WriteText("\t"+string)
         self.out.EndTextColour()

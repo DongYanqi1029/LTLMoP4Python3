@@ -206,6 +206,7 @@ dependencies:
   - zstd=1.5.5=hc292b87_0
   - pip:
     - catkin-pkg==0.5.2
+    - cheetah3==3.2.6.post2
     - cloudpickle==2.2.1
     - cssselect2==0.7.0
     - defusedxml==0.7.1

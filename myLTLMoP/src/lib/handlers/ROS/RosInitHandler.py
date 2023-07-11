@@ -10,12 +10,6 @@ import roslib
 # roslib.load_manifest('gazebo')
 import sys, subprocess, os, time, os, shutil, rospy
 
-# import gi
-# gi.require_version('Rsvg', '2.0')
-# from gi.repository import Rsvg
-
-# import cairo
-
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 
@@ -34,59 +28,50 @@ import fileinput
 import lib.handlers.handlerTemplates as handlerTemplates
 import logging
 
+from Cheetah.Template import Template
+from lib.globalConfig import get_ltlmop_root
 
 class RosInitHandler(handlerTemplates.InitHandler):
-    def __init__(self, executor, init_region, worldFile='ltlmop_map.world', robotPixelWidth=40, robotPhysicalWidth=.5, robotPackage="simulator_gazebo", robotLaunchFile="turtlebot3_burger.launch", modelName = "turtlebot3_burger"):
+    def __init__(self, executor, init_region, worldFile='ltlmop_map.world', robotPixelWidth=40, robotPhysicalWidth=0.5, robotPackage="simulator_gazebo", robotLaunchFile="turtlebot3_burger.launch", modelName = "turtlebot3_burger"):
         """
         Initialization handler for ROS and gazebo
 
         init_region (region): The initial region of the robot
         worldFile (str): The alternate world launch file to be used (default="ltlmop_map.world")
         robotPixelWidth (int): The width of the robot in pixels in ltlmop (default=200)
-        robotPhysicalWidth (float): The physical width of the robot in meters (default=.5)
+        robotPhysicalWidth (float): The physical width of the robot in meters (default=0.5)
         robotPackage (str): The package where the robot is located (default="pr2_gazebo")
         robotLaunchFile (str): The launch file name for the robot in the package (default="pr2.launch")
         modelName(str): Name of the robot. Choices: pr2 and quadrotor for now(default="pr2")
         """
 
+        self.proj = executor.proj
         # Set a blank offset for moving the map
         self.offset=[0,0]
         # The package and launch file for the robot that is being used
-        self.package=robotPackage
-        self.launchFile=robotLaunchFile
+        self.package = robotPackage
+        self.launchFile = robotLaunchFile
         # The world file that is to be launched, see gazebo_worlds/worlds
-        self.worldFile=worldFile
+        self.worldFile = worldFile
         # Map to real world scaling constant
         self.ratio = robotPhysicalWidth/robotPixelWidth
         self.robotPhysicalWidth = robotPhysicalWidth
         self.modelName = modelName
         self.coordmap_map2lab = executor.hsub.coordmap_map2lab
-        addObstacle = False
 
         # change the starting pose of the box
-        self.original_regions = executor.proj.loadRegionFile()
+        self.original_regions = self.proj.loadRegionFile()
+        self.region_file_name = self.proj.spec_data['SETTINGS']['RegionFile'][0].rstrip('.regions')
+        self.spec_file_name = self.proj.getFilenamePrefix().split('/')[-1]
+        self.root = get_ltlmop_root()
+        self.tmpl_path = self.root + '/lib/handlers/ROS/templates/'
+
+
+        self.worldFile = self.region_file_name + "_region_map.world"
+        self.mapPic = self.region_file_name + '_region_map.png'
+        self.materialFile = self.region_file_name + '_region_map.material'
+
         self.destination = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/" + self.worldFile
-        self.state = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_state.world"
-
-        # # clean the original file for world and state
-        # f = open(self.destination, "w")
-        # f.close()
-        # f = open(self.state, "w")
-        # f.close()
-
-        # # start the world file with the necessities
-        # source="/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_essential_front.world"
-        # self.appendObject(source, self.destination)
-        #
-        # if self.worldFile=='ltlmop_map.world':
-        #     # This creates a png copy of the regions to load into gazebo
-        #     self.createRegionMap(executor.proj)
-        # # Change robot and world file in gazebo:
-        # self.changeRobotAndWorld(executor.proj)
-        #
-        # # close the world file with the necessities
-        # source = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_essential_end.world"
-        # self.appendObject(source, self.destination)
 
         # Center the robot in the init region (not on calibration)
         if init_region == "__origin__":
@@ -94,107 +79,34 @@ class RosInitHandler(handlerTemplates.InitHandler):
         else:
             self.centerTheRobot(executor, init_region)
 
-        # clean the original file for world and state
-        f = open(self.destination, "w")
-        f.close()
-        f = open(self.state, "w")
+        # Create world file
+        self.worldNamespace = {}
+
+        f = open(self.tmpl_path + 'region_map.world.tmpl', 'r')
+        worldDef = f.read()
         f.close()
 
-        # start the world file with the necessities
-        source = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_essential_front.world"
-        self.appendObject(source, self.destination)
+        # Set world name
+        worldName = self.region_file_name + '_world'
+        self.worldNamespace['world_name'] = worldName
 
-        if self.worldFile == 'ltlmop_map.world':
-            # This creates a png copy of the regions to load into gazebo
-            self.createRegionMap(executor.proj)
+        # This creates a png copy of the regions to load into gazebo
+        self.createRegionMap(executor.proj)
+
+        # Add obstacle
+        self.addObstacles()
+
+        # Create Boundary
+        self.createBoundary()
+
+        # Create file
+        f = open(self.destination, 'w+')
+        world = Template(worldDef, searchList=self.worldNamespace)
+        f.write(str(world))
+        f.close()
+
         # Change robot and world file in gazebo:
-        self.changeRobotAndWorld(executor.proj)
-
-        # check if there are obstacles. If so, they will be added to the world
-        for region in self.original_regions.regions:
-            if region.isObstacle is True:
-                addObstacle = True
-                break
-
-        source = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_essential_state.world"
-        self.appendObject(source, self.state)
-
-        if addObstacle is False:
-            print("INIT:NO obstacle")
-
-        if addObstacle is True:
-            print("INIT:OBSTACLES!!")
-            # start the ltlmop_state.world file with the necessities
-
-            i = 0
-            ######### ADDED
-            self.proj = executor.proj
-            self.map = {'polygon': {}, 'original_name': {}, 'height': {}}
-            for region in self.proj.rfi.regions:
-                self.map['polygon'][region.name] = self.createRegionPolygon(region)
-                for n in range(len(region.holeList)):  # no of holes
-                    self.map['polygon'][region.name] -= self.createRegionPolygon(region,n)
-
-            ###########
-            for region in self.original_regions.regions:
-                if region.isObstacle is True:
-                    poly_region = self.createRegionPolygon(region)
-                    center = poly_region.center()
-                    print("center:" + str(center), file=sys.stdout)
-                    pose = self.coordmap_map2lab(region.getCenter())
-                    print("pose:" + str(pose), file=sys.stdout)
-                    pose = center
-                    height = region.height
-                    if height == 0:
-                        height = self.original_regions.getMaximumHeight()
-
-                    """
-                    #Fina the height and width of the region
-                    pointArray = [x for x in region.getPoints()]
-                    pointArray = map(self.coordmap_map2lab, pointArray)
-                    # Find how much our bounding box has shifted in relation to the old one
-                    for j, pt in enumerate(pointArray):
-                        if j == 0:
-                            # Set initial values
-                            topLeftX  = pt[0]
-                            topLeftY  = pt[1]
-                            botRightX = pt[0]
-                            botRightY = pt[1]
-                        else:
-                            # Check for any points that would expand our bounds
-                            if pt[0] > botRightX:
-                                botRightX = pt[0]
-                            if pt[0] < topLeftX:
-                                topLeftX = pt[0]
-                            if pt[1] < topLeftY:
-                                topLeftY = pt[1]
-                            if pt[1] > botRightY:
-                                botRightY = pt[1]
-
-
-                    size = [botRightX - topLeftX, botRightY - topLeftY]
-                    """
-
-                    a = poly_region.boundingBox()
-                    size = [a[1]-a[0], a[3]-a[2]] # xmax,xmin,ymax,ymin
-
-                    if "pillar" in region.name.lower():    # cylinders
-                        radius = min(size[0], size[1])/2
-                        print("INIT: pose "+str(pose)+" height: "+str(height)+" radius: "+str(radius))
-                        self.addCylinder(i, radius, height, pose)
-                    else:
-                        length = size[0]   # width in region.py = size[0]
-                        depth = size[1]  # height in region.py =size[1]
-                        print("INIT: pose "+str(pose)+" height: "+str(height)+" length: "+str(length)+" depth: "+str(depth))
-                        self.addBox(i, length, depth, height, pose)
-                    i += 1
-
-        #append ltlmop_state.world to worldfile
-        self.appendObject(self.state, self.destination)
-
-        # close the world file with the necessities
-        source="/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_essential_end.world"
-        self.appendObject(source, self.destination)
+        self.changeRobotAndWorld()
 
         # set up a publisher to publish pose
         self.pub = rospy.Publisher('/gazebo/set_model_state', ModelState, queue_size=10)
@@ -205,192 +117,19 @@ class RosInitHandler(handlerTemplates.InitHandler):
         #The following is a global node for LTLMoP
         rospy.init_node('LTLMoPHandlers')
 
-    def createRegionPolygon(self,region,hole = None):
+    def createRegionPolygon(self, region, hole=None):
         """
         This function takes in the region points and make it a Polygon.
         """
-        if hole == None:
+        if hole is None:
             pointArray = [x for x in region.getPoints()]
         else:
-            pointArray = [x for x in region.getPoints(hole_id = hole)]
+            pointArray = [x for x in region.getPoints(hole_id=hole)]
+
         pointArray = map(self.coordmap_map2lab, pointArray)
-        regionPoints = [(pt[0],pt[1]) for pt in pointArray]
-        formedPolygon= Polygon.Polygon(regionPoints)
+        regionPoints = [(pt[0], pt[1]) for pt in pointArray]
+        formedPolygon = Polygon.Polygon(regionPoints)
         return formedPolygon
-
-    def addBox(self, i, length, depth, height, pose):
-        """
-        to add a box into the world
-        i = count for the name  (just to distinguish one model from another)
-        length = length of the box (in x direction)
-        depth  = depth of the box  (in y direction)
-        height = height of the cylinder
-        pose   = center of the cylinder
-        """
-        # for editing the starting pose of the box
-
-        path="/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_box.world"
-        # change the name of the model/link/collision/visual
-        searchExp='<model name='
-        replaceExp='    <model name="Box_' + str(i) + '_Model">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '      <link name="Box_' + str(i) + '">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<collision name='
-        replaceExp = '        <collision name="Box_' + str(i) + '_Collision">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<visual name='
-        replaceExp = '        <visual name="Box_' + str(i) + '_Visual">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-
-        # position of the collision/visual
-        searchExp = '<collision name='
-        replaceExp = '          <pose>0.000000 0.000000 '+str(float(height)/2)+' 0 -0.000000 0.000000</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp = '<visual name='
-        replaceExp = '          <pose>0.000000 0.000000 '+str(float(height)/2)+' 0 -0.000000 0.000000</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # change the pose of the model/link
-        searchExp = '<model name='
-        replaceExp = '      <pose>' + str(pose[0]) + ' ' + str(pose[1]) + ' 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '        <pose>0 0 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # change the radius and height of the model
-        searchExp='<box>'
-        replaceExp='              <size>' + str(length) + ' ' + str(depth) + ' ' + str(height) + '</size>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        #append to the world file
-        self.appendObject(path, self.destination)
-
-        # change the state file for cylinder
-        path="/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_state_box.world"
-        searchExp='<model name='
-        replaceExp='      <model name="Box_' + str(i) + '_Model">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '        <link name="Box_' + str(i) + '">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-
-        searchExp = '<model name='
-        replaceExp = '        <pose>'+str(pose[0])+' '+str(pose[1])+' 0 0 0 0 </pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp='<link name='
-        replaceExp='          <pose>0 0 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        #append to the state file
-        self.appendObject(path, self.state)
-
-    def addCylinder(self,i,radius, height, pose):
-        """
-        to add a cylinder into the world
-        i = count for the name  (just to distinguish one model from another)
-        radius = radius of the cylinder
-        height = height of the cylinder
-        pose   = center of the cylinder
-        """
-        # for editing the starting pose of the cylinder (box works the same way)
-        # for editing the starting pose of the box
-
-        path = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_cylinder.world"
-        # change the name of the model/link/collision/visual
-        searchExp = '<model name='
-        replaceExp = '    <model name="Cylinder_' + str(i) + '_Model">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '      <link name="Cylinder_' + str(i) + '">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<collision name='
-        replaceExp = '        <collision name="Cylinder_' + str(i) + '_Collision">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<visual name='
-        replaceExp = '        <visual name="Cylinder_' + str(i) + '_Visual">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-
-        # position of the collision/visual
-        searchExp = '<collision name='
-        replaceExp = '          <pose>0.000000 0.000000 ' + str(float(height) / 2) + ' 0 -0.000000 0.000000</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp = '<visual name='
-        replaceExp = '          <pose>0.000000 0.000000 ' + str(float(height) / 2) + ' 0 -0.000000 0.000000</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # change the pose of the model/link
-        searchExp = '<model name='
-        replaceExp = '      <pose>' + str(pose[0]) + ' ' + str(pose[1]) + ' 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '        <pose>0 0 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # change the radius and height of the model
-        searchExp = '<cylinder>'
-        replaceExp = '              <size>' + str(radius) + ' ' + str(height) + '</size>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # append to the world file
-        self.appendObject(path, self.destination)
-
-        # change the state file for cylinder
-        path = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/ltlmop_state_cylinder.world"
-        searchExp = '<model name='
-        replaceExp = '      <model name="Cylinder_' + str(i) + '_Model">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '        <link name="Cylinder_' + str(i) + '">\n'
-        self.replaceAll(path, searchExp, replaceExp)
-
-        searchExp = '<model name='
-        replaceExp = '        <pose>' + str(pose[0]) + ' ' + str(pose[1]) + ' 0 0 0 0 </pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-        searchExp = '<link name='
-        replaceExp = '          <pose>0 0 0 0 0 0</pose>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
-
-        # append to the state file
-        self.appendObject(path, self.state)
-
-    def replaceNextLine(self,file,searchExp,replaceExp):
-        """
-        Relaces lines in a file given a search string and replacement string
-        You only need a portion of the line to match the searchExp and
-        then it will replace the whole line with the replaceExp
-        """
-        found = False
-        done  = False
-        for line in fileinput.input(file, inplace=1):
-
-            if found is True:
-                done = True
-                found = False
-                #print line
-                #print "replace"
-                line = line.replace(line,replaceExp)
-
-            if searchExp in line and done is False:
-                found = True
-
-            sys.stdout.write(line)
-
-    def appendObject(self,source, dest):
-        """
-        append lines from source file to destination file
-        source: source file
-        dest  : destination file
-        """
-        myfile = open(source,"r")
-        #with open(source,"r") as myfile:
-        f=open(dest,"a") ## file open in appending mode i.e 'a'
-        for line in myfile:
-            f.write(line)
-        f.close() ## File closing after writingself.
-        myfile.close()
 
     def getSharedData(self):
         # TODO: Return a dictionary of any objects that will need to be shared with other handlers
@@ -426,77 +165,73 @@ class RosInitHandler(handlerTemplates.InitHandler):
 
         return fout  # return the file name
 
-    def replaceAll(self, file, searchExp, replaceExp):
-        """
-        Relaces lines in a file given a search string and replacement string
-        You only need a portion of the line to match the searchExp and
-        then it will replace the whole line with the replaceExp
-        """
-        for line in fileinput.input(file, inplace=1):
-            if searchExp in line:
-                line = line.replace(line, replaceExp)
-            sys.stdout.write(line)
-
     def createRegionMap(self, proj):
         """
         This function creates the ltlmop region map as a floor plan in the
         Gazebo Simulator.
         """
-        #This block creates a copy and converts to svg
+        # This block creates a copy and converts to svg
         texture_dir = '/home/dongyanqi/catkin_ws/src/simulator_gazebo/materials/textures' #potentially dangerous as pathd in ROS change with updates
         ltlmop_path = proj.getFilenamePrefix()
         regionsFile = ltlmop_path + "_copy.regions"
         shutil.copy(proj.rfi.filename, regionsFile)
         svgFile = self.region2svg(proj, regionsFile) # svg file name
-        # svg = Rsvg.Handle(file=svgFile)
         drawing = svg2rlg(svgFile)
         
-        #This block converts the svg to png and applies naming conventions
-        # self.imgWidth = svg.props.width
-        # self.imgHeight = svg.props.height
-        # img = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.imgWidth, self.imgHeight)
-        # ctx = cairo.Context(img)
-        # handler = Rsvg.Handle(svgFile)
-        # handler.render_cairo(ctx)
-        # img.write_to_png(ltlmop_path+"_simbg.png")
+        # This block converts the svg to png and applies naming conventions
         renderPM.drawToFile(drawing, ltlmop_path+"_simbg.png", fmt='PNG')
         ltlmop_map_path = ltlmop_path + "_simbg.png"
         shutil.copy(ltlmop_map_path, texture_dir)
         full_pic_path = texture_dir + "/" + proj.project_basename + "_simbg.png"
-        shutil.copyfile(full_pic_path, (texture_dir + "/" + 'ltlmop_map.png'))
+        texture_pic_path = texture_dir + "/" + self.mapPic
+        shutil.copyfile(full_pic_path, texture_pic_path)
 
-        from PIL import Image
-        img = Image.open(texture_dir + "/" + 'ltlmop_map.png')
-        self.imgWidth = img.width
-        self.imgHeight = img.height
-        img.close()
-        # print(texture_dir + "/" + 'ltlmop_map.png: ' + str(self.imgWidth) + ' ' + str(self.imgHeight))
+        # Create material file
+        f = open(self.tmpl_path + 'region_map.material.tmpl', 'r')
+        materialDef = f.read()
+        f.close()
+
+        materialNamespace = {'map_pic': self.mapPic}
+        material = Template(materialDef, searchList=[materialNamespace])
+
+        material_path = '/home/dongyanqi/catkin_ws/src/simulator_gazebo/materials/scripts/' + self.materialFile
+        f = open(material_path, 'w+')
+        f.write(str(material))
+        f.close()
 
         # Change size of region map in gazebo
+        from PIL import Image
+        img = Image.open(texture_dir + "/" + self.mapPic)
+        imgWidth = img.width
+        imgHeight = img.height
+        img.close()
+
         # This is accomplished through edits of the world file before opening
-        path = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/worlds/" + self.worldFile # Potential problem when version changes >_<
-        # path="/opt/ros/melodic/stacks/simulator_gazebo/gazebo_worlds/worlds/ltlmop_map.world" # Potential problem when version changes >_<
-        searchExp = '<box>'
-        T = [self.ratio * self.imgWidth, self.ratio * self.imgHeight]
+        T = [self.ratio * imgWidth, self.ratio * imgHeight]
         resizeX = T[0]
         resizeY = T[1]
-        replaceExp = '              <size>'+str(resizeX) + ' ' + str(resizeY) + ' .01</size>\n'
-        self.replaceNextLine(path, searchExp, replaceExp)
 
-    def changeRobotAndWorld(self, proj):
+        self.worldNamespace['imgWidth'] = str(resizeX)
+        self.worldNamespace['imgHeight'] = str(resizeY)
+        self.worldNamespace['ground_plane_material_path'] = material_path
+
+
+
+    def changeRobotAndWorld(self):
         """
         This changes the robot in the launch file
         """
         # Accomplish through edits in the launch file
-        path = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/launch/simulation_launch/ltlmop_world.launch"
+        path = "/home/dongyanqi/catkin_ws/src/simulator_gazebo/launch/simulation_launch/" + self.spec_file_name + "_world.launch"
 
-        # robot launch file
-        searchExp = '<arg name="robot_package"'
-        replaceExp = '  <arg name="robot_package" default="' + self.package + '" />\n'
-        self.replaceAll(path, searchExp, replaceExp)
-        searchExp = '<arg name="robot_launch"'
-        replaceExp = '  <arg name="robot_launch" default="' + self.launchFile + '" />\n'
-        self.replaceAll(path, searchExp, replaceExp)
+        # Open launch file template
+        f = open(self.tmpl_path + 'world.launch.tmpl', 'r')
+        launchDef = f.read()
+        launchNamespace = {}
+        f.close()
+
+        launchNamespace['robot_pkg'] = self.package
+        launchNamespace['robot_launch'] = self.launchFile
 
         # change robot position
         pos_str = os.getenv('ROBOT_INITIAL_POSE')
@@ -507,21 +242,132 @@ class RosInitHandler(handlerTemplates.InitHandler):
             # pos_x = str(1)
             # pos_y = str(0)
 
-            searchExp = '<arg name="x" default'
-            replaceExp = '  <arg name="x" default="' + pos_x + '" />\n'
-            self.replaceAll(path, searchExp, replaceExp)
-            searchExp = '<arg name="y" default'
-            replaceExp = '  <arg name="y" default="' + pos_y + '" />\n'
-            self.replaceAll(path, searchExp, replaceExp)
+            launchNamespace['coord_x'] = pos_x
+            launchNamespace['coord_y'] = pos_y
 
-        # world launch file
-        searchExp='<arg name="world_name"'
-        replaceExp = '    <arg name="world_name" value="$(find simulator_gazebo)/worlds/' + self.worldFile + '"/>\n'
-        self.replaceAll(path, searchExp, replaceExp)
+        # World file
+        launchNamespace['world_file'] = self.worldFile
+
+        # Create launch File
+        launch = Template(launchDef, searchList=launchNamespace)
+        f = open(path, 'w+')
+        f.write(str(launch))
+        f.close()
+
+
+
+    def addObstacles(self):
+        # check if there are obstacles. If so, they will be added to the world
+        # square obstacle limited
+        for region in self.original_regions.regions:
+            if region.isObstacle is True:
+                addObstacle = True
+                break
+
+        if addObstacle is False:
+            self.worldNamespace["OBSTACLE"] = False
+            print("INIT:NO obstacle")
+
+        if addObstacle is True:
+            print("INIT:OBSTACLES!!")
+            self.worldNamespace["OBSTACLE"] = True
+            self.worldNamespace["obstacle_count"] = 0
+            self.worldNamespace["pos_x"] = []
+            self.worldNamespace["pos_y"] = []
+            self.worldNamespace["lengths"] = []
+            self.worldNamespace["depths"] = []
+            self.worldNamespace["heights"] = []
+            ######### ADDED
+
+            self.map = {'polygon': {}, 'original_name': {}, 'height': {}}
+            for region in self.proj.rfi.regions:
+                self.map['polygon'][region.name] = self.createRegionPolygon(region)
+                for n in range(len(region.holeList)):  # no of holes
+                    self.map['polygon'][region.name] -= self.createRegionPolygon(region, n)
+
+            ###########
+            for region in self.original_regions.regions:
+                if region.isObstacle is True:
+                    poly_region = self.createRegionPolygon(region)
+                    center = poly_region.center()
+                    print("center:" + str(center), file=sys.stdout)
+                    pose = self.coordmap_map2lab(region.getCenter())
+                    print("pose:" + str(pose), file=sys.stdout)
+                    pose = center
+                    height = region.height
+                    if height == 0:
+                        height = self.original_regions.getMaximumHeight()
+
+                    a = poly_region.boundingBox()
+                    size = [a[1] - a[0], a[3] - a[2]]  # xmax,xmin,ymax,ymin
+
+                    # if "pillar" in region.name.lower():  # cylinders
+                    #     radius = min(size[0], size[1]) / 2
+                    #     print("INIT: pose " + str(pose) + " height: " + str(height) + " radius: " + str(radius))
+                    #     self.addCylinder(i, radius, height, pose)
+                    # else:
+                    #     length = size[0]  # width in region.py = size[0]
+                    #     depth = size[1]  # height in region.py = size[1]
+                    #     print("INIT: pose " + str(pose) + " height: " + str(height) + " length: " + str(
+                    #         length) + " depth: " + str(depth))
+                    #     self.addBox(i, length, depth, height, pose)
+
+                    length = size[0]  # width in region.py = size[0]
+                    depth = size[1]  # height in region.py = size[1]
+                    # print("INIT: pose " + str(pose) + " height: " + str(height) + " length: " + str(length) + " depth: " + str(depth))
+
+                    self.worldNamespace["pos_x"].append(pose[0])
+                    self.worldNamespace["pos_y"].append(pose[1])
+                    self.worldNamespace["lengths"].append(length)
+                    self.worldNamespace["depths"].append(depth)
+                    self.worldNamespace["heights"].append(height)
+                    self.worldNamespace["obstacle_count"] += 1
+
+
+    def createBoundary(self):
+        boundary = None
+        for region in self.original_regions.regions:
+            if region.name == "boundary":
+                boundary = region
+
+        self.worldNamespace["boundary_count"] = 0
+        self.worldNamespace["boundary_pos_x"] = []
+        self.worldNamespace["boundary_pos_y"] = []
+        self.worldNamespace["boundary_lengths"] = []
+        self.worldNamespace["boundary_depths"] = []
+        self.worldNamespace["boundary_heights"] = []
+
+
+        try:
+            poly_boundary = self.createRegionPolygon(boundary)
+            bbox = poly_boundary.boundingBox()  # xmin, xmax, ymin and ymax
+            points = [regions.Point(bbox[0], bbox[2]), regions.Point(bbox[1], bbox[2]), regions.Point(bbox[1], bbox[3]), regions.Point(bbox[0], bbox[3])]
+            # points = map(self.coordmap_map2lab, points)
+            points = [(pt.x, pt.y) for pt in points]
+            points = points + points[:1]
+
+            for i in range(1, len(points)):
+                pos_x = (points[i][0] + points[i-1][0])/2
+                pos_y = (points[i][1] + points[i-1][1])/2
+
+                length = abs(points[i][0] - points[i-1][0]) if abs(points[i][0] - points[i-1][0]) >= 1e-3 else 0.05
+                depth = abs(points[i][1] - points[i-1][1]) if abs(points[i][1] - points[i-1][1]) >= 1e-3 else 0.05
+                height = 1
+
+                self.worldNamespace["boundary_pos_x"].append(pos_x)
+                self.worldNamespace["boundary_pos_y"].append(pos_y)
+                self.worldNamespace["boundary_lengths"].append(length)
+                self.worldNamespace["boundary_depths"].append(depth)
+                self.worldNamespace["boundary_heights"].append(height)
+                self.worldNamespace["boundary_count"] += 1
+
+        except Exception as e:
+            print(e)
+
 
 
     def rosSubProcess(self, proj, worldFile='ltlmop_map.world'):
-        start = subprocess.Popen(['roslaunch simulator_gazebo ltlmop_world.launch'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        start = subprocess.Popen(['roslaunch simulator_gazebo ' + self.spec_file_name + "_world.launch"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         start_output = start.stdout
         # logging.info(start_output.read())
 
@@ -549,9 +395,9 @@ class RosInitHandler(handlerTemplates.InitHandler):
         # Start in the center of the defined initial region
 
         try: #Normal operation
-            initial_region = executor.proj.rfiold.regions[executor.proj.rfiold.indexOfRegionWithName(init_region)]
+            initial_region = self.proj.rfiold.regions[self.proj.rfiold.indexOfRegionWithName(init_region)]
         except: #Calibration
-            initial_region = executor.proj.rfi.regions[executor.proj.rfi.indexOfRegionWithName(init_region)]
+            initial_region = self.proj.rfi.regions[self.proj.rfi.indexOfRegionWithName(init_region)]
         center = initial_region.getCenter()
 
         # Load the map calibration data and the region file data to feed to the simulator

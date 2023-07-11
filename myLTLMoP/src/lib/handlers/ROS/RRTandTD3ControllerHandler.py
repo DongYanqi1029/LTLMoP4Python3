@@ -38,10 +38,12 @@ except:
 import lib.handlers.handlerTemplates as handlerTemplates
 
 class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
-    def __init__(self, executor, shared_data, robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True):
+    def __init__(self, executor, shared_data, model_name='TD3_MyRobotWorld-v0_actor', model_path='/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models', robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True):
         """
         Rapidly-Exploring Random Trees alogorithm motion planning controller
 
+        model_name (string): NN model name
+        model_path (string): NN model path
         robot_type (int): Which robot is used for execution. BasicSim is 1, ODE is 2, ROS is 3, Nao is 4, Pioneer is 5(default=1)
         max_angle_goal (float): The biggest difference in angle between the new node and the goal point that is acceptable. If it is bigger than the max_angle, the new node will not be connected to the goal point. The value should be within 0 to 6.28 = 2*pi. Default set to 6.28 = 2*pi (default=6.28)
         max_angle_overlap (float): difference in angle allowed for two nodes overlapping each other. If you don't want any node overlapping with each other, put in 2*pi = 6.28. Default set to 1.57 = pi/2 (default=1.57)
@@ -164,10 +166,12 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
             thread.start_new_thread(self.jplot,())
 
         # Set DRL Agent
-        self.scan_ob_dim = 36
-        self.policy = Policy('TD3', '/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models', )
+        self.model_path = model_path
+        self.model_name = model_name
+        self.scan_ob_dim = 24
+        self.policy = Policy(self.model_name, self.model_path)
         self.obs = Observation(self.scan_ob_dim, None, None, None)
-        self.linear_vel = self.radius/2
+        self.linear_vel = 0.1
 
 
     def gotoRegion(self, current_reg, next_reg, last=False):
@@ -268,20 +272,21 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
 
         # Run algorithm to find a velocity vector (global frame) to take the robot to the next region
         self.Velocity = self.getVelocity(list(pose), self.RRT_V, self.RRT_E)
+        print("Current Velocity: " + str(self.Velocity))
         # self.Node = self.getNode([pose[0], pose[1]], self.RRT_V,self.RRT_E)
         self.previous_next_reg = next_reg
 
         # Pass this desired velocity on to the drive handler
         self.drive_handler.setVelocity(self.Velocity[0, 0], self.Velocity[1, 0])
 
-        print("Set Velocity => " + str(self.Velocity))
+        # print("Set Velocity => " + str(self.Velocity))
 
         # self.drive_handler.setVelocity(self.Node[0,0], self.Node[1,0], pose[2])
         RobotPoly = Polygon.Shapes.Circle(self.radius, (pose[0], pose[1]))
 
         # check if robot is inside the current region
         departed = not self.currentRegionPoly.overlaps(RobotPoly)
-        arrived  = self.nextRegionPoly.covers(RobotPoly)
+        arrived = self.nextRegionPoly.covers(RobotPoly)
 
         if departed and (not arrived) and (time.time()-self.last_warning) > 0.5:
             # Figure out what region we think we stumbled into
@@ -298,7 +303,7 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
         #print "arrived:"+str(arrived)
         return arrived
 
-    def createRegionPolygon(self,region,hole = None):
+    def createRegionPolygon(self, region, hole=None):
         """
         This function takes in the region points and make it a Polygon.
         """
@@ -308,10 +313,10 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
             pointArray = [x for x in region.getPoints(hole_id = hole)]
         pointArray = map(self.coordmap_map2lab, pointArray)
         regionPoints = [(pt[0],pt[1]) for pt in pointArray]
-        formedPolygon= Polygon.Polygon(regionPoints)
+        formedPolygon = Polygon.Polygon(regionPoints)
         return formedPolygon
 
-    def getVelocity(self,p, V, E, last=False):
+    def getVelocity(self, p, V, E, last=False):
         """
         This function calculates the velocity for the robot with RRT.
         The inputs are (given in order):
@@ -324,7 +329,10 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
 
         pose = p
         target = [V[1, int(E[1, self.E_current_column])], V[2, int(E[1, self.E_current_column])]]
+        print("Current pose: " + str(pose[:2]))
+        print("Current target: " + str(target))
 
+        # DRL
         self.obs.pose = pose
         self.obs.target = target
         self.obs.last_action = list(self.policy.last_action)
@@ -333,7 +341,7 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
         dis_cur = state[self.scan_ob_dim]
 
         # dis_cur = distance between current position and the next point
-        # dis_cur = vstack((V[1, int(E[1, self.E_current_column])], V[2, int(E[1, self.E_current_column])])) - pose
+        # dis_cur = [target[i] - pose[i] for i in range(2)]
 
         heading = int(E[1, self.E_current_column])        # index of the current heading point on the tree
         if dis_cur < 1.5*self.radius:         # already reached target point
@@ -348,6 +356,7 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
             #    dis_cur  = vstack((V[1,E[1,self.E_current_column]],V[2,E[1,self.E_current_column]]))- vstack((V[1,E[0,self.E_current_column]],V[2,E[0,self.E_current_column]]))
 
         action = self.policy.get_action(state)
+        print(state)
 
         Vel = zeros([2,1])
         Vel[0, 0] = self.linear_vel
@@ -791,13 +800,13 @@ class RRTandTD3ControllerHandler(handlerTemplates.MotionControlHandler):
         self.plotPoly(self.robot, 'b')
         """
         pose = self.pose_handler.getPose()
-        self.ax.plot(pose[0],pose[1],'bo')
+        self.ax.plot(pose[0], pose[1], 'bo')
         """
         self.ax.plot(self.q_g[0],self.q_g[1],'ro')
         self.plotPoly(self.overlap,'g')
         self.plotPoly(self.m_line,'b')
         """
-        yield(pose[0],pose[1])
+        yield(pose[0], pose[1])
         """
         self.ax.plot(self.prev_follow[0],self.prev_follow[1],'ko')
         """

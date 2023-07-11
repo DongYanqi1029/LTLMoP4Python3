@@ -1369,7 +1369,7 @@ class propMappingDialog(wx.Dialog):
             if method_string is None:
                 print("ERROR: Method cannot be mapped to string")
             else:
-                start, end = self.text_ctrl_mapping.GetSelection()
+                start, end = self.text_ctrl_mapping.GetSelection().GetRange().Get()
                 if start < 0:
                     # If nothing is selected, just insert
                     start = self.text_ctrl_mapping.GetInsertionPoint()
@@ -1456,7 +1456,7 @@ class propMappingDialog(wx.Dialog):
         if s.strip() == "":
             return
 
-        start, end = self.text_ctrl_mapping.GetSelection()
+        start, end = self.text_ctrl_mapping.GetSelection().GetRange().Get()
         if start >= 0:
             # If something is selected, check to make sure neither side is inside a methodstring
             check_pts = [start, end]

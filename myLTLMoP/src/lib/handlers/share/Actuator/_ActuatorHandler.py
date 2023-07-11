@@ -38,7 +38,7 @@ class ActuatorDisplayFrame(wx.Frame):
         self.history_grid.EnableEditing(False)
 
         # Create new thread to listen for commands from parent
-        self.listenThread = threading.Thread(target = self._listen)
+        self.listenThread = threading.Thread(target=self._listen)
         self.listenThread.daemon = True
         self.listenThread.start()
 
@@ -46,19 +46,19 @@ class ActuatorDisplayFrame(wx.Frame):
         host = 'localhost'
         port = 23559
         buf = 1024
-        addr = (host,port)
-        UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        UDPSock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-        UDPSock.sendto("Hello!\n",addr)
+        addr = (host, port)
+        UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        UDPSock.sendto("Hello!\n".encode(), addr)
         UDPSock.close()
 
     def _listen(self):
         while True:
             # Wait for and receive a message
-            data = raw_input().strip()
+            data = input().strip()
 
             if data == ':QUIT':  # EOF indicates that the connection has been destroyed
-                print "Listen thread is shutting down."
+                print("Listen thread is shutting down.")
                 wx.CallAfter(self.Destroy())
                 break
 

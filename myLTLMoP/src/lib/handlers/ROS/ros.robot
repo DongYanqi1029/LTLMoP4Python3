@@ -11,17 +11,19 @@ PoseHandler: # Robot default pose handler with default argument values
 ROS.RosPoseHandler(modelName="turtlebot3_burger")
 
 SensorHandler: # Robot default sensors handler with default argument values
-# ROS.RosSensorHandler()
+ROS.RosSensorHandler()
 
 ActuatorHandler: # Robot default actuator handler wit default argument values
-# ROS.RosActuatorHandler()
+ROS.RosActuatorHandler()
 
 MotionControlHandler: # Robot default motion control handler with default argument values
 # share.MotionControl.HeatControllerHandler()
 # share.MotionControl.VectorControllerHandler()
 # ROS.ROSMotionControlHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
 # share.MotionControl.RRTControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True)
-ROS.RRTandTD3ControllerHandler(robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=False)
+# ROS.RRTandTD3ControllerHandler(model_name='TD3_MyRobotWorld-v0_actor', model_path='/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models', robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=False)
+ROS.DRLControllerHandler(model_name='TD3_MyRobotWorld-v0_actor', model_path='/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models')
+
 
 DriveHandler: # Robot default drive handler with default argument values
 ROS.RosDriveHandler(d=.6)

@@ -27,29 +27,38 @@ class DummySensorHandler(handlerTemplates.SensorHandler):
         self._running = True
         self.p_sensorHandler = None
 
+        self.host = 'localhost'
+        self.port = 23459
+        self.buf = 1024
+        self.addr = (self.host, self.port)
+        self.UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+
     def _stop(self):
         if self.p_sensorHandler is not None:
-            print >>sys.__stderr__, "(SENS) Killing dummysensor GUI..."
-            self.p_sensorHandler.stdin.write(":QUIT\n")
+            print("(SENS) Killing dummysensor GUI...", file=sys.__stderr__)
+            self.p_sensorHandler.stdin.write(":QUIT\n".encode())
             self.p_sensorHandler.stdin.close()
+            # self.UDPSock.sendto(":QUIT\n".encode(), self.addr)
 
-            print >>sys.__stderr__, "(SENS) Terminating dummysensor GUI listen thread..."
+            print("(SENS) Terminating dummysensor GUI listen thread...", file=sys.__stderr__)
             self._running = False
             self.sensorListenThread.join()
 
     def _createSubwindow(self):
             # Create a subprocess
-            print "(SENS) Starting sensorHandler window and listen thread..."
+            print("(SENS) Starting sensorHandler window and listen thread...")
             self.p_sensorHandler = subprocess.Popen([sys.executable, "-u", os.path.join(self.proj.ltlmop_root,"lib","handlers","share","Sensor","_SensorHandler.py")], stdin=subprocess.PIPE)
 
             # Create new thread to communicate with subwindow
-            self.sensorListenThread = threading.Thread(target = self._sensorListen)
+            self.sensorListenThread = threading.Thread(target=self._sensorListen)
             self.sensorListenThread.daemon = True
             self.sensorListenThread.start()
 
             # Block until the sensor listener gets the go-ahead from the subwindow
             while not self.sensorListenInitialized:
-                time.sleep(0.05) # Yield cpu
+                time.sleep(0.05)  # Yield cpu
 
     def regionBit(self,name,init_region,bit_num,initial=False):
         """
@@ -63,12 +72,14 @@ class DummySensorHandler(handlerTemplates.SensorHandler):
             if not self.sensorListenInitialized:
                 self._createSubwindow()
 
-            if name not in self.sensorValue.keys():
+            if name not in list(self.sensorValue.keys()):
                 # create a new map element
                 # choose an initial (decomposed) region inside the desired one
                 self.sensorValue[name] = self.proj.regionMapping[init_region][0]
-                self.p_sensorHandler.stdin.write("loadproj," + self.proj.getFilenamePrefix() + ".spec,\n")
-                self.p_sensorHandler.stdin.write(",".join(["region", name, self.sensorValue[name]]) + "\n")
+                self.p_sensorHandler.stdin.write(("loadproj," + self.proj.getFilenamePrefix() + ".spec,\n").encode())
+                self.p_sensorHandler.stdin.write((",".join(["region", name, self.sensorValue[name]]) + "\n").encode())
+                # self.UDPSock.sendto(("loadproj," + self.proj.getFilenamePrefix() + ".spec,\n").encode(), self.addr)
+                # self.UDPSock.sendto((",".join(["region", name, self.sensorValue[name]]) + "\n").encode(), self.addr)
             return True
         else:
             if name in self.sensorValue:
@@ -78,10 +89,11 @@ class DummySensorHandler(handlerTemplates.SensorHandler):
                 #print name, bit_num, (reg_idx_bin[bit_num] == '1')
                 return (reg_idx_bin[bit_num] == '1')
             else:
-                print "(SENS) WARNING: Region sensor %s is unknown!" % button_name
+                # print("(SENS) WARNING: Region sensor %s is unknown!" % button_name)
+                print("(SENS) WARNING: Region sensor is unknown!")
                 return None
 
-    def buttonPress(self,button_name,init_value,initial=False):
+    def buttonPress(self, button_name, init_value, initial=False):
         """
         Return a boolean value corresponding to the state of the sensor with name ``sensor_name``
         If such a sensor does not exist, returns ``None``
@@ -94,47 +106,45 @@ class DummySensorHandler(handlerTemplates.SensorHandler):
             if not self.sensorListenInitialized:
                 self._createSubwindow()
 
-            if button_name not in self.sensorValue.keys():
+            if button_name not in list(self.sensorValue.keys()):
                 self.sensorValue[button_name] = init_value
                 if init_value:
-                    self.p_sensorHandler.stdin.write("button," + button_name + ",1\n")
+                    self.p_sensorHandler.stdin.write(("button," + button_name + ",1\n").encode())
+                    # self.p_sensorHandler.communicate(("button," + button_name + ",1\n").encode())
+                    # self.UDPSock.sendto(("button," + button_name + ",1\n").encode(), self.addr)
+
                 else:
-                    self.p_sensorHandler.stdin.write("button," + button_name + ",0\n")
+                    self.p_sensorHandler.stdin.write(("button," + button_name + ",0\n").encode())
+                    # self.UDPSock.sendto(("button," + button_name + ",0\n").encode(), self.addr)
             return self.sensorValue[button_name]
         else:
             if button_name in self.sensorValue:
                 return self.sensorValue[button_name]
             else:
-                print "(SENS) WARNING: Sensor %s is unknown!" % button_name
+                print("(SENS) WARNING: Sensor %s is unknown!" % button_name)
                 return None
 
     def _sensorListen(self):
         """
         Processes messages from the sensor handler subwindow, and updates our cache appropriately
         """
-        host = 'localhost'
-        port = 23459
-        buf = 1024
-        addr = (host,port)
-
-        UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        UDPSock.settimeout(1)
+        self.UDPSock.settimeout(1)
         try:
-            UDPSock.bind(addr)
+            self.UDPSock.bind(self.addr)
         except:
-            print "ERROR: Cannot bind to port.  Try killing all Python processes and trying again."
+            print("ERROR: Cannot bind to port.  Try killing all Python processes and trying again.")
             return
 
         while self._running:
             # Wait for and receive a message from the subwindow
             try:
-                input,addrFrom = UDPSock.recvfrom(1024)
+                input, addrFrom = self.UDPSock.recvfrom(self.buf)
+                input = input.decode()
             except socket.timeout:
                 continue
 
             if input == '':  # EOF indicates that the connection has been destroyed
-                print "(SENS) Sensor handler listen thread is shutting down."
+                print("(SENS) Sensor handler listen thread is shutting down.")
                 break
 
             # Check for the initialization signal, if necessary
