@@ -96,3 +96,9 @@ catkin package, 包含描述gazebo仿真信息的文件
 ## 3. configs/
 
 存储环境配置文件，如conda虚拟环境
+
+```sh
+conda env export > [yaml_name].yaml
+conda env create -f [yaml_name].yaml
+```
+
