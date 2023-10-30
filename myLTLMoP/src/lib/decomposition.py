@@ -433,13 +433,13 @@ class decomposition():
             thisPt = myVertex(pt.x, pt.y)
 
             if lastPt != None:
-                yield tuple(sorted((lastPt, thisPt)))
+                yield tuple((lastPt, thisPt))
             else:
                 firstPt = thisPt
 
             lastPt = thisPt
 
-        yield tuple(sorted((lastPt, firstPt))) # Closing face
+        yield tuple((lastPt, firstPt))  # Closing face
         
         
     def calcAngle(self,a,b,c):

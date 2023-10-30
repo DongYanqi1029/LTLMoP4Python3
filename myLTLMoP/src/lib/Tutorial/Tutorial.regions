@@ -12,28 +12,9 @@ boundary	5
 boundary	6
 
 Obstacles: # Names of regions to treat as obstacles
-r4
 
 Regions: # Stored as JSON string
 [
-    {
-        "name": "r4",
-        "position": [
-            399.0,
-            109.0
-        ],
-        "size": [
-            24.0,
-            71.0
-        ],
-        "height": 1.0,
-        "color": [
-            0,
-            255,
-            0
-        ],
-        "type": "rect"
-    },
     {
         "name": "boundary",
         "position": [

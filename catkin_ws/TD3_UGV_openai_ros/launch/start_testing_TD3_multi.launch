@@ -1,0 +1,6 @@
+<launch>
+    <!-- This version uses the openai_ros environments -->
+    <rosparam command="load" file="$(find TD3_UGV_openai_ros)/config/TD3_testing_params.yaml" />
+    <!-- Launch the training system -->
+    <node pkg="TD3_UGV_openai_ros" name="MyRobot_TD3" type="start_testing_TD3_multi.py" output="screen"/>
+</launch>

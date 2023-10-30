@@ -1,0 +1,10 @@
+myrobot:
+    task_and_robot_environment_name: 'MyRobotWorld-v0'
+    ros_ws_abspath: "/home/dongyanqi/catkin_ws"
+    training_path: '/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros'
+
+    model_path: '/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models/actor_stage9_episode7400.pt'
+    scan_dim: 40
+    hidden_size: 512
+    n_episodes: 1
+    n_steps: 1000

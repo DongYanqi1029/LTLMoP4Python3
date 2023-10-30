@@ -21,7 +21,7 @@ import scipy.linalg
 import Polygon, Polygon.IO
 import Polygon.Utils as PolyUtils
 import Polygon.Shapes as PolyShapes
-from math import sqrt, fabs , pi
+from math import sqrt, fabs, pi
 import random
 import _thread as thread
 
@@ -29,7 +29,7 @@ import _thread as thread
 import lib.handlers.handlerTemplates as handlerTemplates
 
 class DRLControllerHandler(handlerTemplates.MotionControlHandler):
-    def __init__(self, executor, shared_data, model_name='TD3_MyRobotWorld-v0_actor', model_path='/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models'):
+    def __init__(self, executor, shared_data, model_name='actor_stage9_episode7400.pt', model_path='/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/models'):
         """
         DRL policy dependent motion planning controller
 
@@ -70,7 +70,7 @@ class DRLControllerHandler(handlerTemplates.MotionControlHandler):
         self.scan_ob_dim = self.policy.scan_ob_dim
 
         self.obs = Observation(self.scan_ob_dim, None, None, None)
-        self.linear_vel = 0.1
+        self.linear_vel = 0.2
 
         # print region info
         self.system_print = True
@@ -171,7 +171,7 @@ class DRLControllerHandler(handlerTemplates.MotionControlHandler):
         action = self.policy.get_action(state)
 
         Vel = zeros([2,1])
-        Vel[0, 0] = self.linear_vel
-        Vel[1, 0] = action[0]
+        Vel[0, 0] = action[0]
+        Vel[1, 0] = action[1]
 
         return Vel

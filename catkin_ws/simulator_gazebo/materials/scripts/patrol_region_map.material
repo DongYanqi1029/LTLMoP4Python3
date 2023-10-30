@@ -1,0 +1,16 @@
+material GroundPlane/Image/patrol
+    {
+      technique
+      {
+        pass
+        {
+
+
+          texture_unit
+          {
+            texture ../textures/patrol_region_map.png
+            filtering trilinear
+          }
+        }
+      }
+    }

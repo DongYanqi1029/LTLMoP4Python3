@@ -36,7 +36,7 @@ except:
 import lib.handlers.handlerTemplates as handlerTemplates
 
 class RRTControllerHandler(handlerTemplates.MotionControlHandler):
-    def __init__(self, executor, shared_data, robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=True):
+    def __init__(self, executor, shared_data, robot_type=3, max_angle_goal=6.28, max_angle_overlap=1.57, plotting=False):
         """
         Rapidly-Exploring Random Trees alogorithm motion planning controller
 
@@ -237,16 +237,16 @@ class RRTControllerHandler(handlerTemplates.MotionControlHandler):
                 self.plotMap(self.map)
                 plt.plot(pose[0],pose[1],'ko')
 
-            print("Midpoints of target transition face: ")
-            print(q_gBundle)
-            print("Normal vector of the face: ")
-            print(face_normal)
+            # print("Midpoints of target transition face: ")
+            # print(q_gBundle)
+            # print("Normal vector of the face: ")
+            # print(face_normal)
             self.RRT_V, self.RRT_E, self.E_current_column = self.buildTree([pose[0], pose[1]], pose[2], self.currentRegionPoly, self.nextRegionPoly, q_gBundle, face_normal)
 
-            print("print V & E")
-            print(self.RRT_V)
-            print(self.RRT_E)
-            print(self.E_current_column)
+            # print("print V & E")
+            # print(self.RRT_V)
+            # print(self.RRT_E)
+            # print(self.E_current_column)
 
             """
             # map the lab coordinates back to pixels

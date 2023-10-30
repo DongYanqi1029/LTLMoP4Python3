@@ -17,9 +17,9 @@
 
 import os, sys, copy
 
-sys.path.insert(0, "./lib")
+# sys.path.insert(0, "./lib")
 
-import fileMethods
+from lib import fileMethods
 import re, random, math
 import Polygon, Polygon.Utils, os
 import json
@@ -564,8 +564,9 @@ class Region(object):
     
         if self.type == reg_POLY:    
             # Shift our vertices to align with the new bounding box
-            self.pointArray = map(lambda x: x-Point(topLeftX, topLeftY), self.pointArray)
-            self.pointArray = list(self.pointArray)
+            # self.pointArray = map(lambda x: x-Point(topLeftX, topLeftY), self.pointArray)
+            # self.pointArray = list(self.pointArray)
+            self.pointArray = [x-Point(topLeftX, topLeftY) for x in self.pointArray]
             # Shift holes vertices to align with the new bounding box
             for i, hole in enumerate(self.holeList):
                 self.holeList[i] = map(lambda x: x-Point(topLeftX, topLeftY), self.holeList[i])
@@ -751,7 +752,7 @@ class Region(object):
                     lastPt = thisPt
 
                 if lastPt != firstPt:
-                    yield frozenset((lastPt, firstPt)) # Closing face
+                    yield frozenset((lastPt, firstPt))  # Closing face
                 else:
                     print("WARNING: region {} has hole side of length 0".format(self.name))
 

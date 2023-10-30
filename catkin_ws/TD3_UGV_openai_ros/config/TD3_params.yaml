@@ -3,18 +3,21 @@ myrobot:
     task_and_robot_environment_name: 'MyRobotWorld-v0'
     ros_ws_abspath: "/home/dongyanqi/catkin_ws"
     training_path: '/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros'
+
+    scan_dim: 40
+    hidden_size: 512
     
-    start_timesteps: 2000 # 5000
+    start_timesteps: 500 # 5000
     eval_freq: 1000 # 1000
-    max_timesteps: 10000 # 200000
-    max_episode_steps: 50
+    max_timesteps: 200000 # 200000
+    max_episode_steps: 200
     expl_noise: 0.2
-    batch_size: 512
+    batch_size: 128
     reward_discount_factor: 0.99
-    tau: 0.005
+    tau: 0.003
     policy_noise: 0.2
     noise_clip: 0.5
     policy_freq: 2
 
-    load_model: 'default'
+    load_model: ''
     save_model: 1

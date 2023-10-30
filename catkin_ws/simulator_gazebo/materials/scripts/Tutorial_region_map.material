@@ -1,4 +1,4 @@
-material GroundPlane/Image
+material GroundPlane/Image/Tutorial
     {
       technique
       {

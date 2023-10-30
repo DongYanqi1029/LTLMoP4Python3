@@ -1,0 +1,16 @@
+material GroundPlane/Image/indoor
+    {
+      technique
+      {
+        pass
+        {
+
+
+          texture_unit
+          {
+            texture ../textures/indoor_region_map.png
+            filtering trilinear
+          }
+        }
+      }
+    }

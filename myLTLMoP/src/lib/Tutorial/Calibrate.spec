@@ -5,7 +5,6 @@
 ======== SETTINGS ========
 
 Actions: # List of action propositions and their state (enabled = 1, disabled = 0)
-actuator1, 1
 
 CompileOptions:
 convexify: False
@@ -25,7 +24,6 @@ RegionFile: # Relative path of region description file
 Tutorial.regions
 
 Sensors: # List of sensor propositions and their state (enabled = 1, disabled = 0)
-sensor1, 1
 
 
 ======== SPECIFICATION ========
@@ -33,14 +31,12 @@ sensor1, 1
 RegionMapping: # Mapping between region names and their decomposed counterparts
 r2 = p2
 r3 = p1
-r1 = p4
+r1 = p3
 others = 
 
 Spec: # Specification in structured English
-!e.sensor1
 --
-
-[] ( next(s.r2) -> next(s.actuator1) )
+s.r1
 
 []<>s.r1
 []<>s.r2

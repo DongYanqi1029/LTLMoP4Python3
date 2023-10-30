@@ -13,21 +13,49 @@ import TD3
 # import OurDDPG
 # import DDPG
 from openai_ros.openai_ros_common import StartOpenAI_ROS_Environment
+import matplotlib
+import matplotlib.pyplot as plt
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
 # evaluate与train使用同一个env
-def eval_policy(policy, env, eval_episodes=5, max_episode_timesteps=100):
+def eval_policy(policy, env, goals, eval_episodes=5, max_episode_timesteps=100):
 	avg_reward = 0.
+
+	goals = goals
+	goal_num = len(goals)
+	goal_index = 0
+
+	os.environ['GOAL_X'] = str(goals[goal_index][0])
+	os.environ['GOAL_Y'] = str(goals[goal_index][1])
+
 	for _ in range(eval_episodes):
+		goal_index = 0
+		os.environ['GOAL_X'] = str(goals[goal_index][0])
+		os.environ['GOAL_Y'] = str(goals[goal_index][1])
 		state, _ = env.reset()
 		done = False
 		step = 1
-		while (not done) and step <= max_episode_steps:
+
+		while step <= max_episode_steps:
+			if done and reward == 200:
+				goal_index = (goal_index+1)%goal_num
+				os.environ['GOAL_X'] = str(goals[goal_index][0])
+				os.environ['GOAL_Y'] = str(goals[goal_index][1])
+			
+			elif done and reward == -150:
+				break
+
+			rospy.logwarn("Eval: Get state => " + str(state))
 			action = policy.select_action(state)
 			state, reward, done, _, _ = env.step(action)
 			avg_reward += reward
 			step += 1
+
+			rospy.logwarn("Eval: Set action => " + str(action))
+			rospy.logwarn("Eval: Get next state => " + str(state))
+			rospy.logwarn("Eval: Get reward => " + str(reward))
+			# rospy.logwarn("Eval: Total reward => " + str(episode_reward))
 
 	avg_reward /= eval_episodes
 
@@ -36,10 +64,47 @@ def eval_policy(policy, env, eval_episodes=5, max_episode_timesteps=100):
 	print("---------------------------------------")
 	return avg_reward
 
+def plot_durations(reward_data):
+        is_ipython = 'inline' in matplotlib.get_backend()
+        if is_ipython:
+            from IPython import display
+
+        plt.ion()
+
+        plt.figure(1)
+        # plt.clf消除之前的plot
+        plt.clf()
+        total_reward = torch.tensor(reward_data, dtype=torch.float)
+        plt.title('Reward Curve')
+        plt.xlabel('Episode')
+        plt.ylabel('Total Reward')
+        plt.plot(total_reward.numpy())
+        # Take 100 episode averages and plot them too
+        # 绘制最近100个episode的平均reward
+        if len(total_reward) >= 100:
+            means = total_reward.unfold(0, 100, 1).mean(1).view(-1)
+            means = torch.cat((torch.zeros(99)-150, means))
+            plt.plot(means.numpy())
+
+        plt.pause(0.001)  # pause a bit so that plots are updated
+        fig = plt.gcf()
+        fig.savefig("/home/dongyanqi/catkin_ws/src/TD3_UGV_openai_ros/reward_curve/training.png")
+        if is_ipython:
+            display.clear_output(wait=True)
+            display.display(plt.gcf())
+
 
 if __name__ == "__main__":
 
 	rospy.init_node("MyRobot_TD3", anonymous=True, log_level=rospy.WARN)
+
+	# Set target point
+	goals = [(1, 0), (-0.5, 0.5), (-1.6, 0), (1.5,-1.5)]
+	goal_index = 0
+	goal_num = len(goals)
+
+	os.environ['GOAL_X'] = str(goals[goal_index][0])
+	os.environ['GOAL_Y'] = str(goals[goal_index][1])
 
 	# Init OpenAI_ROS ENV
 	task_and_robot_environment_name = rospy.get_param('/myrobot/task_and_robot_environment_name')
@@ -55,6 +120,8 @@ if __name__ == "__main__":
 
 	# Load parameters from yaml config file
 	# model_path = rospy.get_param('/myrobot/model_path')
+	scan_dim = rospy.get_param('/myrobot/scan_dim')
+	hidden_size = rospy.get_param('/myrobot/hidden_size')
 
 	policy_name = rospy.get_param('/myrobot/policy_name')
 	start_timesteps = rospy.get_param('/myrobot/start_timesteps') # Time steps initial RANDOM policy is used
@@ -114,6 +181,7 @@ if __name__ == "__main__":
 		"state_dim": state_dim,
 		"action_dim": action_dim,
 		"max_action": max_action,
+		"hidden_size": hidden_size,
 		"discount": discount,
 		"tau": tau,
 	}
@@ -137,14 +205,15 @@ if __name__ == "__main__":
 
 	replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
 	
-	# Evaluate untrained policy
-	evaluations = [eval_policy(policy, env)]
+	# # Evaluate untrained policy
+	# evaluations = [eval_policy(policy, env, goals)]
 
 	state, _ = env.reset()
 	done = False
 	episode_reward = 0
 	episode_timesteps = 0
 	episode_num = 0
+	episodes_reward = []
 
 	for t in range(int(max_timesteps)):
 		
@@ -164,7 +233,7 @@ if __name__ == "__main__":
 		# Perform action
 		next_state, reward, done, truncted, _ = env.step(action) 
 
-		done_bool = float(done) if episode_timesteps < max_episode_steps else 1
+		# done_bool = float(done) if episode_timesteps < max_episode_steps else 1
 
 		# Store data in replay buffer
 		replay_buffer.add(state, action, next_state, reward, float(done))
@@ -183,18 +252,42 @@ if __name__ == "__main__":
 		if t >= start_timesteps:
 			policy.train(replay_buffer, batch_size)
 
-		if done_bool: 
+		if (done and reward == -150) or episode_timesteps >= max_episode_steps: 
 			# +1 to account for 0 indexing. +0 on ep_timesteps since it will increment +1 even if done=True
 			print(f"Total T: {t+1} Episode Num: {episode_num+1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
+
+			episodes_reward.append(episode_reward)
+			plot_durations(episodes_reward)
+
 			# Reset environment
+			goal_index = 0
+			os.environ['GOAL_X'] = str(goals[goal_index][0])
+			os.environ['GOAL_Y'] = str(goals[goal_index][1])
 			state, _ = env.reset()
 			done = False
 			episode_reward = 0
 			episode_timesteps = 0
 			episode_num += 1 
+			
+
+		elif done and reward == 200:
+			print('Reach target point ' + str(goal_index))
+			goal_index = (goal_index+1)%goal_num
+			os.environ['GOAL_X'] = str(goals[goal_index][0])
+			os.environ['GOAL_Y'] = str(goals[goal_index][1])
 
 		# Evaluate episode
 		if (t + 1) % eval_freq == 0:
-			evaluations.append(eval_policy(policy, env))
-			np.save(training_path + f"/results/{file_name}", evaluations)
+			# evaluations.append(eval_policy(policy, env, goals))
+			# np.save(training_path + f"/results/{file_name}", evaluations)
 			if save_model: policy.save(training_path + f"/models/{file_name}")
+			
+		# 	# Reset environment
+		# 	goal_index = 0
+		# 	os.environ['GOAL_X'] = str(goals[goal_index][0])
+		# 	os.environ['GOAL_Y'] = str(goals[goal_index][1])
+		# 	state, _ = env.reset()
+		# 	done = False
+		# 	episode_reward = 0
+		# 	episode_timesteps = 0
+		# 	episode_num += 1 

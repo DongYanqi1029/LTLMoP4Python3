@@ -11,30 +11,7 @@ import os
 from gazebo_msgs.srv import *
 from transforms3d.euler import quat2euler
 import cmath
-# from enum import IntEnum, unique
-
-# class Action():
-#     def __init__(self, linear_vel, angular_vel):
-#         self.linear_vel = linear_vel
-#         self.angular_vel = angular_vel
-
-#     def set_linear_vel(self, linear_vel):
-#         self.linear_vel = linear_vel
-
-#     def get_linear_vel(self):
-#         return self.linear_vel
-
-#     def set_angular_vel(self, linear_vel):
-#         self.angular_vel = angular_vel
-
-#     def get_angular_vel(self):
-#         return self.angular_vel 
-
-# @unique
-# class EPISODE_DONE(IntEnum):
-#     NOT_DONE = 0
-#     REACH = 1
-#     CRASH = 2
+import math
 
 class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
     def __init__(self):
@@ -87,17 +64,12 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         """
 
         # Actions and Observations
-        self.linear_speed = rospy.get_param('/myrobot/linear_speed')
         self.max_linear_speed = rospy.get_param('/myrobot/max_linear_speed')
         self.max_angular_speed = rospy.get_param('/myrobot/max_angular_speed')
-        self.init_linear_forward_speed = rospy.get_param('/myrobot/init_linear_forward_speed')
-        self.init_linear_turn_speed = rospy.get_param('/myrobot/init_linear_turn_speed')
-        self.turn_threshold = rospy.get_param('/myrobot/turn_threshold')
-        self.forward_threshold = rospy.get_param('/myrobot/forward_threshold')
 
         self.scan_ob_dim = rospy.get_param('/myrobot/scan_ob_dim')
-        self.goal_ob_dim = rospy.get_param('/myrobot/goal_ob_dim')
-        self.last_action_ob_dim = rospy.get_param('/myrobot/last_action_ob_dim')
+        self.max_goal_distance = rospy.get_param('/myrobot/max_goal_distance')
+
         self.goal_range = rospy.get_param('/myrobot/goal_range')
         self.min_range = rospy.get_param('/myrobot/min_range')
         self.safe_distance = rospy.get_param('/myrobot/safe_distance')
@@ -109,10 +81,10 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         self.model_name = rospy.get_param('/myrobot/model_name')
 
         # Only variable needed to be set here
-        action_high = numpy.array([self.max_angular_speed])
-        action_low = numpy.array([-self.max_angular_speed])
+        action_high = numpy.array([1.0, 1.0])
+        action_low = numpy.array([-1.0, -1.0])
         self.action_space = spaces.Box(action_low, action_high)
-        self.last_action = numpy.array([0.0])
+        self.last_action = numpy.array([0.0, 0.0])
 
         # We set the reward range, which is not compulsory but here we do it.
         self.reward_range = (-numpy.inf, numpy.inf)
@@ -121,13 +93,12 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         # In the discretization method.
         
         # scan_ob range
-        scan_high = numpy.full((self.scan_ob_dim), self.max_laser_value)
-        scan_low = numpy.full((self.scan_ob_dim), self.min_laser_value)
+        scan_high = numpy.full((self.scan_ob_dim), 1.0)
+        scan_low = numpy.full((self.scan_ob_dim), 0)
 
         # goal_ob and last_action_ob range
-        pi = 3.14
-        high = numpy.array([numpy.inf, pi, self.max_angular_speed])
-        low = numpy.array([-numpy.inf, -pi, -self.max_angular_speed])
+        high = numpy.array([1.0, 1.0, 1.0, 1.0])
+        low = numpy.array([0, -1.0, -1.0, -1.0])
 
         ob_high = numpy.append(scan_high, high)
         ob_low = numpy.append(scan_low, low)
@@ -159,8 +130,8 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
     def _set_init_pose(self):
         """Sets the Robot in its init pose
         """
-        self.move_base( self.init_linear_forward_speed,
-                        self.init_linear_turn_speed,
+        self.move_base( 0,
+                        0,
                         epsilon=0.05,
                         update_rate=10)
 
@@ -207,6 +178,9 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
     def get_goal_ob(self):
         self.get_robot_pose()
         # 相对x, y坐标
+        self.goal_x = float(os.environ.get('GOAL_X'))
+        self.goal_y = float(os.environ.get('GOAL_Y'))
+        print(self.goal_x, self.goal_y)
         relative_x = self.goal_x - self.robot_pos_x
         relative_y = self.goal_y - self.robot_pos_y
         coor = complex(relative_x, relative_y)
@@ -215,13 +189,16 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         # 在机器人朝向左侧为正, 右侧为负
         distance, angle = cmath.polar(coor) # [-pi, pi]
         angle = angle - self.robot_or_theta
-        pi = 3.14
+        pi = math.pi
         if (angle < -pi): # 相当于在左侧
             angle += 2*pi
         if (angle > pi): # 相当于在右侧
             angle -= 2*pi
 
-        goal_ob = [distance, angle]
+        rel_distance = float(numpy.clip((distance/self.max_goal_distance), 0, 1))
+        rel_angle = float(angle)/math.pi
+
+        goal_ob = [rel_distance, rel_angle]
 
         return goal_ob
 
@@ -233,19 +210,19 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         :param action: The action integer that set s what movement to do next.
         """
 
-        rospy.logdebug("Start Set Action ==>" + str(action[0]))
+        rospy.logdebug("Start Set Action ==>" + str(action))
         # We convert the actions to speed movements to send to the parent class CubeSingleDiskEnv
-        # linear_vel = action[0]
-        angular_vel = action[0]
         self.last_action = action
+        linear_vel =  self.max_linear_speed
+        angular_vel = action[1] * self.max_angular_speed
 
         # We tell TurtleBot2 the linear and angular speed to set to execute
-        self.move_base(self.linear_speed, angular_vel, epsilon=0.05, update_rate=10)
+        self.move_base(linear_vel, angular_vel, epsilon=0.05, update_rate=10)
 
-        rospy.logdebug("END Set Action ==>" + str(angular_vel))
+        rospy.logdebug("END Set Action ==>" + str(action))
 
     def get_last_action_ob(self):
-        last_action_ob = [self.last_action[0]]
+        last_action_ob = list(self.last_action)
         return last_action_ob
 
     def _get_obs(self):
@@ -263,6 +240,7 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         goal_ob = self.get_goal_ob()
         last_action_ob = self.get_last_action_ob()
 
+
         ob = scan_ob + goal_ob + last_action_ob
         ob = numpy.array(ob)
 
@@ -277,7 +255,7 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
 
         # Now we check if it has crashed based on the observation
         # min_scan_data = min(observations[:self.scan_ob_dim])
-        distance = observations[self.scan_ob_dim]
+        distance = observations[self.scan_ob_dim] * self.max_goal_distance
 
         if self.is_crash():
             self._episode_done = True
@@ -296,7 +274,7 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         reward = 0
 
         if not done:
-            distance_to_goal = observations[self.scan_ob_dim]
+            distance_to_goal = observations[self.scan_ob_dim] * self.max_goal_distance
             # lin_vel = observations[self.scan_ob_dim + 2]
             # ang_vel = observations[self.scan_ob_dim + 3]
             # if lin_vel >= self.forward_threshold:
@@ -308,7 +286,7 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
             # if abs(ang_vel) < self.turn_threshold:
             #     reward += self.straight_reward
             # else:
-            #     reward += self.turn_reward5
+            #     reward += self.turn_reward
 
             if distance_to_goal < (self.robot_radius + self.safe_distance):
                 reward = 1 - (distance_to_goal/(self.robot_radius + self.safe_distance))
@@ -317,7 +295,7 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
             # reward = self.reward_baseline + self.reward_scale_factor * (self.goal_range - distance_to_goal)
         else:
             # min_scan_data = min(observations[:self.scan_ob_dim])
-            distance = observations[self.scan_ob_dim]
+            distance = observations[self.scan_ob_dim] * self.max_goal_distance
             if self.is_crash(): # crash
                 reward = self.crash_penalty
             elif distance < self.goal_range: # reach
@@ -339,22 +317,21 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
 
         scan_ob = []
         laser_data = list(data.ranges)
-        # laser_data_left = laser_data[300:]
-        # laser_data_right = laser_data[0:61]
+        # laser_data_left = laser_data[240:]
+        # laser_data_right = laser_data[:121]
         # laser_data = laser_data_left + laser_data_right
-        mod = (len(laser_data)//scan_ob_dim)
+        mod = numpy.ceil(len(laser_data)/scan_ob_dim)
 
         for i, item in enumerate(laser_data):
             if (i%mod==0):
                 # laser_data单位:m
-                # distance = item * 100
                 distance = item
                 if distance == float ('Inf') or numpy.isinf(distance):
-                    scan_ob.append(self.max_laser_value)
+                    scan_ob.append(1.0)
                 elif numpy.isnan(distance):
-                    scan_ob.append(self.min_laser_value)
+                    scan_ob.append(0.0)
                 else:
-                    scan_ob.append(distance)
+                    scan_ob.append(numpy.clip(float(distance/self.max_laser_value), 0, 1))
         
         return scan_ob
 
@@ -374,18 +351,22 @@ class MyRobotWorldEnv(myrobot_env.MyRobotEnv):
         data = list(self.get_laser_scan().ranges)
         dist = []
         for distance in data:
-                # data单位:m
-                if distance == float ('Inf') or numpy.isinf(distance):
-                    dist.append(self.max_laser_value)
-                elif numpy.isnan(distance):
-                    dist.append(self.min_laser_value)
-                else:
-                    dist.append(distance)
+            # data单位:m
+            if distance == float ('Inf') or numpy.isinf(distance):
+                dist.append(self.max_laser_value)
+            elif numpy.isnan(distance):
+                dist.append(self.min_laser_value)
+            else:
+                dist.append(distance)
         min_scan_data = min(data)
         if min_scan_data < self.min_range:
             return True
         else:
             return False
+
+    def set_goal(self, x, y):
+        self.goal_x = x
+        self.goal_y = y
 
 
 

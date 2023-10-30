@@ -1,0 +1,28 @@
+
+
+State 0 with rank 0 -> <sensor1:0, bit0:1, bit1:0, bit2:0, bit3:1>
+	With successors : 1, 2
+State 1 with rank 0 -> <sensor1:0, bit0:1, bit1:0, bit2:1, bit3:0>
+	With successors : 3, 4
+State 2 with rank 0 -> <sensor1:1, bit0:1, bit1:0, bit2:1, bit3:0>
+	With successors : 3, 4
+State 3 with rank 0 -> <sensor1:0, bit0:0, bit1:1, bit2:0, bit3:0>
+	With successors : 5, 6
+State 4 with rank 0 -> <sensor1:1, bit0:0, bit1:1, bit2:0, bit3:0>
+	With successors : 5, 6
+State 5 with rank 0 -> <sensor1:0, bit0:0, bit1:0, bit2:0, bit3:1>
+	With successors : 7, 8
+State 6 with rank 0 -> <sensor1:1, bit0:0, bit1:0, bit2:0, bit3:1>
+	With successors : 7, 8
+State 7 with rank 0 -> <sensor1:0, bit0:0, bit1:0, bit2:0, bit3:0>
+	With successors : 9, 10
+State 8 with rank 0 -> <sensor1:1, bit0:0, bit1:0, bit2:0, bit3:0>
+	With successors : 9, 10
+State 9 with rank 0 -> <sensor1:0, bit0:0, bit1:0, bit2:1, bit3:0>
+	With successors : 9, 10
+State 10 with rank 0 -> <sensor1:1, bit0:0, bit1:0, bit2:1, bit3:0>
+	With successors : 9, 10
+State 11 with rank 0 -> <sensor1:1, bit0:1, bit1:0, bit2:0, bit3:1>
+	With successors : 1, 2
+
+

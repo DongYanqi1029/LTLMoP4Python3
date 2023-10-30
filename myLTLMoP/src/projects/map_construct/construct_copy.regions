@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="312" height="499">
+<path style="fill:rgb(27, 158, 119);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 73.7796, 1.59936 L 73.7796, 215.913 L 73.7796, 393.442 L 73.7796, 497.401 L 0, 497.401 L 0, 0 L 73.7796, 0 z "/>
+<path style="fill:rgb(217, 95, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 81.2826, 198.321 L 81.2826, 1.59936 L 167.567, 1.59936 L 167.567, 111.955 z "/>
+<path style="fill:rgb(117, 112, 179);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 173.194, 198.321 L 81.2826, 198.321 L 167.567, 111.955 L 173.194, 111.955 z "/>
+<path style="fill:rgb(231, 41, 138);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 173.194, 1.59936 L 243.848, 1.59936 L 243.848, 108.756 L 243.848, 198.321 L 243.222, 198.321 z "/>
+<path style="fill:rgb(102, 166, 30);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 243.222, 215.913 L 173.194, 215.913 L 173.194, 198.321 L 173.194, 111.955 L 173.194, 1.59936 L 243.222, 198.321 z "/>
+<path style="fill:rgb(230, 171, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 312, 198.321 L 243.848, 198.321 L 243.848, 108.756 L 250.1, 108.756 z "/>
+<path style="fill:rgb(166, 118, 29);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 312, 198.321 L 250.1, 108.756 L 250.1, 1.59936 L 312, 1.59936 z "/>
+<path style="fill:rgb(102, 102, 102);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 312, 499 L 73.7796, 499 L 73.7796, 497.401 L 73.7796, 393.442 L 81.2826, 393.442 z "/>
+<path style="fill:rgb(27, 158, 119);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 312, 499 L 81.2826, 393.442 L 81.2826, 215.913 L 173.194, 215.913 L 243.222, 215.913 L 243.848, 215.913 L 312, 215.913 z "/>
+</svg>

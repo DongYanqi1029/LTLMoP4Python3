@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="494" height="968">
+<path style="fill:rgb(27, 158, 119);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 85.7355, 470.283 L 85.7355, 487.919 L 85.7355, 960.162 L 85.7355, 962.121 L 0, 962.121 L 0, 0 L 85.7355, 0 z "/>
+<path style="fill:rgb(217, 95, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 372.541, 254.737 L 377.645, 254.737 L 377.645, 354.672 L 373.052, 354.672 z "/>
+<path style="fill:rgb(117, 112, 179);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 85.7355, 0 L 377.645, 0 L 377.645, 1.95951 L 372.541, 1.95951 z "/>
+<path style="fill:rgb(231, 41, 138);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 372.541, 1.95951 L 372.541, 254.737 L 275.068, 290.008 L 275.068, 158.721 z "/>
+<path style="fill:rgb(102, 166, 30);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 85.7355, 0 L 372.541, 1.95951 L 275.068, 158.721 L 178.105, 158.721 z "/>
+<path style="fill:rgb(230, 171, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 85.7355, 470.283 L 85.7355, 0 L 178.105, 158.721 L 178.105, 290.008 z "/>
+<path style="fill:rgb(166, 118, 29);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 373.052, 354.672 L 373.052, 468.324 L 373.052, 470.283 L 198.008, 470.283 L 85.7355, 470.283 L 178.105, 290.008 L 275.068, 290.008 z "/>
+<path style="fill:rgb(102, 102, 102);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 275.068, 290.008 L 372.541, 254.737 L 373.052, 354.672 z "/>
+<path style="fill:rgb(27, 158, 119);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 198.008, 958.202 L 198.008, 960.162 L 85.7355, 960.162 L 85.7355, 487.919 L 198.008, 487.919 z "/>
+<path style="fill:rgb(217, 95, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 198.008, 470.283 L 373.052, 470.283 L 373.052, 472.243 L 327.632, 632.923 L 249.041, 632.923 z "/>
+<path style="fill:rgb(117, 112, 179);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 198.008, 958.202 L 198.008, 487.919 L 198.008, 470.283 L 249.041, 632.923 L 249.041, 762.251 z "/>
+<path style="fill:rgb(231, 41, 138);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 373.052, 958.202 L 198.008, 958.202 L 249.041, 762.251 L 327.632, 762.251 z "/>
+<path style="fill:rgb(102, 166, 30);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 373.052, 472.243 L 373.052, 958.202 L 327.632, 762.251 L 327.632, 632.923 L 373.052, 472.243 L 373.052, 470.283 z "/>
+<path style="fill:rgb(230, 171, 2);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 493.49, 968 L 377.645, 958.202 L 377.645, 472.243 L 378.155, 472.243 z "/>
+<path style="fill:rgb(166, 118, 29);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 494, 0 L 493.49, 968 L 378.155, 472.243 L 378.155, 354.672 z "/>
+<path style="fill:rgb(102, 102, 102);fill-opacity:1.0;fill-rule:evenodd;stroke:rgb(0, 0, 0);stroke-width:1.0;" d="M 378.155, 354.672 L 377.645, 354.672 L 377.645, 254.737 L 377.645, 1.95951 L 377.645, 0 L 494, 0 z "/>
+</svg>

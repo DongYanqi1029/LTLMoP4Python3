@@ -1,31 +1,81 @@
-from TD3_UGV_openai_ros import networks
 from sensor_msgs.msg import LaserScan
+import torch
+import torch.nn.functional as F
+import torch.nn as nn
 import numpy as np
 import torch
 import rospy
 import cmath
+import math
+from abc import ABC, abstractmethod
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+class Network(torch.nn.Module, ABC):
+    def __init__(self, name, visual=None):
+        super(Network, self).__init__()
+        self.name = name
+        self.visual = visual
+        self.iteration = 0
+
+    @abstractmethod
+    def forward():
+        pass
+
+    def init_weights(n, m):
+        if isinstance(m, torch.nn.Linear):
+            # --- define weights initialization here (optional) ---
+            torch.nn.init.xavier_uniform_(m.weight)
+            m.bias.data.fill_(0.01)
+
+
+class Actor(Network):
+    def __init__(self, name, state_size, action_size, hidden_size):
+        super(Actor, self).__init__(name)
+        # --- define layers here ---
+        self.fa1 = nn.Linear(state_size, hidden_size)
+        self.fa2 = nn.Linear(hidden_size, hidden_size)
+        self.fa3 = nn.Linear(hidden_size, action_size)
+
+        self.apply(super().init_weights)
+
+    def forward(self, states, visualize=False):
+        # --- define forward pass here ---
+        x1 = torch.relu(self.fa1(states))
+        x2 = torch.relu(self.fa2(x1))
+        action = torch.tanh(self.fa3(x2))
+
+        # -- define layers to visualize here (optional) ---
+        if visualize and self.visual:
+            self.visual.update_layers(states, action, [x1, x2], [self.fa1.bias, self.fa2.bias])
+        # -- define layers to visualize until here ---
+        return action
+
 class Policy():
     def __init__(self, model_name, model_path):
+        self.max_linear_vel = 0.22
+        self.max_angular_vel = 2.0
+
         self.policy = None
         self.model_name = model_name
         self.model_path = model_path
 
         self.model_path += '/' + self.model_name
-        if 'TD3' in self.model_name:
-            self.policy = networks.Actor(24+2+1, 1, np.array([1.0])).to(device)
-            self.state_dim = 27
-            self.scan_ob_dim = 24
+        # if 'TD3' in self.model_name:
+        self.state_dim = 40 + 4
+        self.scan_ob_dim = 40
+        self.policy = Actor('td3', self.state_dim, 2, 512).to(device)
 
         self.policy.load_state_dict(torch.load(self.model_path))
-        self.last_action = np.zeros(1)
+        self.last_action = np.zeros(2)
 
     def get_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         action = self.policy(state).cpu().data.numpy().flatten()
         self.last_action = action
+
+        action = [action[0]*self.max_linear_vel, action[1]*self.max_angular_vel]
+
         return action
 
 class Observation():
@@ -34,8 +84,8 @@ class Observation():
         self.pose = pose
         self.target = target
         self.last_action = last_action
-        self.max_laser_value = 3
-        self.min_laser_value = 0
+        self.max_laser_value = 2
+        self.max_goal_distance = 3
 
     def get_scan_data(self):
         laser_scan = None
@@ -56,7 +106,7 @@ class Observation():
         # laser_data_left = laser_data[300:]
         # laser_data_right = laser_data[0:61]
         # laser_data = laser_data_left + laser_data_right
-        mod = (len(laser_data) // self.scan_dim)
+        mod = math.ceil(len(laser_data) / self.scan_dim)
 
         for i, item in enumerate(laser_data):
             if (i % mod == 0):
@@ -64,11 +114,11 @@ class Observation():
                 # distance = item * 100
                 distance = item
                 if distance == float('Inf') or np.isinf(distance):
-                    scan_ob.append(self.max_laser_value)
+                    scan_ob.append(1)
                 elif np.isnan(distance):
-                    scan_ob.append(self.min_laser_value)
+                    scan_ob.append(0)
                 else:
-                    scan_ob.append(distance)
+                    scan_ob.append(np.clip(float((distance)/self.max_laser_value), 0, 1))
 
         return scan_ob
 
@@ -87,7 +137,10 @@ class Observation():
         if (angle > pi):  # 相当于在右侧
             angle -= 2 * pi
 
-        goal_ob = [distance, angle]
+        rel_distance = float(np.clip((distance / self.max_goal_distance), 0, 1))
+        rel_angle = float(angle) / math.pi
+
+        goal_ob = [rel_distance, rel_angle]
 
         return goal_ob
 

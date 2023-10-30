@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from networks import *
 import sys
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Implementation of Twin Delayed Deep Deterministic Policy Gradients (TD3)
@@ -18,6 +17,7 @@ class TD3(object):
 		state_dim,
 		action_dim,
 		max_action,
+		hidden_size, 
 		discount=0.99,
 		tau=0.005,
 		policy_noise=0.2,
@@ -25,13 +25,14 @@ class TD3(object):
 		policy_freq=2
 	):
 
-		self.actor = Actor(state_dim, action_dim, max_action).to(device)
+		# self.actor = Actor(state_dim, action_dim, max_action).to(device)
+		self.actor = Actor('td3', state_dim, action_dim, hidden_size).to(device)
 		self.actor_target = copy.deepcopy(self.actor)
-		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=3e-4)
+		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=0.001)
 
-		self.critic = Critic(state_dim, action_dim).to(device)
+		self.critic = Critic('td3', state_dim, action_dim, hidden_size).to(device)
 		self.critic_target = copy.deepcopy(self.critic)
-		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
+		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=0.001)
 
 		self.max_action = max_action
 		self.discount = discount
@@ -74,6 +75,7 @@ class TD3(object):
 
 		# Compute critic loss
 		critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q)
+		print("Critic Loss: " + str(critic_loss))
 
 		# Optimize the critic
 		self.critic_optimizer.zero_grad()
@@ -85,6 +87,7 @@ class TD3(object):
 
 			# Compute actor losse
 			actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
+			print("Actor Loss: " + str(actor_loss))
 			
 			# Optimize the actor 
 			self.actor_optimizer.zero_grad()

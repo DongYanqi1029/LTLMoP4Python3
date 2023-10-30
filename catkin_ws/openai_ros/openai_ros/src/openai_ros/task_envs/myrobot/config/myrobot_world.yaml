@@ -3,35 +3,27 @@ myrobot: #namespace
     model_name: "turtlebot3_burger"
     task_ros_package: "simulator_gazebo"
     task_launch_file: "TD3_UGV_task.launch"
-    task_world_file: "Tutorial_region_map.world"
+    task_world_file: "indoor_region_map_mod_1.world"
 
-    start_point_x: 0
-    start_point_y: 0
-    start_yaw: -1.57
+    start_point_x: 1.5
+    start_point_y: 1.5
+    start_yaw: 3.14
 
-    speed_step: 1.0 # Time to wait in the reset phases
-
-    linear_speed: 0.2 
-    max_linear_speed: 0.2
-    max_angular_speed: 1.0 # Angular speed when turning Left or Right
-    init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
-    init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
-    turn_threshold: 0.1
-    forward_threshold: 0.04
+    max_linear_speed: 0.22
+    max_angular_speed: 2.0 # Angular speed when turning Left or Right
     
-    scan_ob_dim: 24 # How many laser readings we jump in each observation reading, the bigger the less laser resolution
-    goal_ob_dim: 2
-    last_action_ob_dim: 1
-    goal_range: 0.125 # Minimum meters below wich we consider we have reached the target point
-    min_range: 0.125 # Minimum meters below wich we consider we have crashed
+    scan_ob_dim: 40 # How many laser readings we jump in each observation reading, the bigger the less laser resolution
+    max_goal_distance: 10
+
+    goal_range: 0.2 # Minimum meters below wich we consider we have reached the target point
+    min_range: 0.13 # Minimum meters below wich we consider we have crashed
     safe_distance: 0.4
     max_laser_value: 3 # Value considered Ok, no wall
     min_laser_value: 0 # Value considered there is an obstacle or crashed
-    max_linear_aceleration: 5.0 # Linear acceleration value in which we consider Turtlebot 3 has crashed into something
 
     robot_radius: 0.1
-    goal_point_x: 0.5
-    goal_point_y: -1.2
+    goal_point_x: -1.5
+    goal_point_y: -1
     
     reward_scale_factor: 0.2
     reward_baseline: 3

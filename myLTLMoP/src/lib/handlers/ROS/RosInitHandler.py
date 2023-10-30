@@ -61,7 +61,7 @@ class RosInitHandler(handlerTemplates.InitHandler):
 
         # change the starting pose of the box
         self.original_regions = self.proj.loadRegionFile()
-        self.region_file_name = self.proj.spec_data['SETTINGS']['RegionFile'][0].rstrip('.regions')
+        self.region_file_name = self.proj.spec_data['SETTINGS']['RegionFile'][0].split('.')[0]
         self.spec_file_name = self.proj.getFilenamePrefix().split('/')[-1]
         self.root = get_ltlmop_root()
         self.tmpl_path = self.root + '/lib/handlers/ROS/templates/'
@@ -175,23 +175,22 @@ class RosInitHandler(handlerTemplates.InitHandler):
         ltlmop_path = proj.getFilenamePrefix()
         regionsFile = ltlmop_path + "_copy.regions"
         shutil.copy(proj.rfi.filename, regionsFile)
-        svgFile = self.region2svg(proj, regionsFile) # svg file name
+        svgFile = self.region2svg(proj, regionsFile)  # svg file name
         drawing = svg2rlg(svgFile)
         
         # This block converts the svg to png and applies naming conventions
-        renderPM.drawToFile(drawing, ltlmop_path+"_simbg.png", fmt='PNG')
-        ltlmop_map_path = ltlmop_path + "_simbg.png"
-        shutil.copy(ltlmop_map_path, texture_dir)
-        full_pic_path = texture_dir + "/" + proj.project_basename + "_simbg.png"
         texture_pic_path = texture_dir + "/" + self.mapPic
-        shutil.copyfile(full_pic_path, texture_pic_path)
+        renderPM.drawToFile(drawing, texture_pic_path, fmt='PNG')
 
         # Create material file
         f = open(self.tmpl_path + 'region_map.material.tmpl', 'r')
         materialDef = f.read()
         f.close()
 
-        materialNamespace = {'map_pic': self.mapPic}
+        materialNamespace = {'ground_plane_material_name': 'GroundPlane/Image/' + self.region_file_name, 'map_pic': self.mapPic}
+        self.worldNamespace['ground_plane_material_name'] = 'GroundPlane/Image/' + self.region_file_name
+
+
         material = Template(materialDef, searchList=[materialNamespace])
 
         material_path = '/home/dongyanqi/catkin_ws/src/simulator_gazebo/materials/scripts/' + self.materialFile
@@ -259,6 +258,7 @@ class RosInitHandler(handlerTemplates.InitHandler):
     def addObstacles(self):
         # check if there are obstacles. If so, they will be added to the world
         # square obstacle limited
+        addObstacle = False
         for region in self.original_regions.regions:
             if region.isObstacle is True:
                 addObstacle = True
@@ -368,6 +368,7 @@ class RosInitHandler(handlerTemplates.InitHandler):
 
     def rosSubProcess(self, proj, worldFile='ltlmop_map.world'):
         start = subprocess.Popen(['roslaunch simulator_gazebo ' + self.spec_file_name + "_world.launch"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # start = subprocess.Popen(['roslaunch simulator_gazebo indoor_world_mod_1.launch'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         start_output = start.stdout
         # logging.info(start_output.read())
 
@@ -402,10 +403,10 @@ class RosInitHandler(handlerTemplates.InitHandler):
 
         # Load the map calibration data and the region file data to feed to the simulator
         coordmap_map2lab, coordmap_lab2map = executor.hsub.getMainRobot().getCoordMaps()
-        map2lab = list(coordmap_map2lab(array(center)))
+        coord = list(coordmap_map2lab(array(center)))
 
-        print("Initial region name: " + str(initial_region.name) + " I think I am here: " + str(map2lab) + " and center is: " + str(center))
+        print("Initial region name: " + str(initial_region.name) + " I think I am here: " + str(coord) + " and center is: " + str(center))
 
-        os.environ['ROBOT_INITIAL_POSE'] = "-x "+str(map2lab[0])+" -y "+str(map2lab[1])
+        os.environ['ROBOT_INITIAL_POSE'] = "-x "+str(coord[0])+" -y "+str(coord[1])
         # os.environ['ROBOT_INITIAL_POSE'] = "-x " + str(0) + " -y " + str(0)
         # print((map2lab[0], map2lab[1]))
